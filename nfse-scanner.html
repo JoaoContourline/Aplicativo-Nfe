@@ -1,66 +1,79 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner NFS-e</title>
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    <style>
-        body { background: #09090b; color: white; font-family: sans-serif; padding: 20px; text-align: center; }
-        #qr-reader { width: 100%; min-height: 250px; border: 2px solid #22c55e; border-radius: 10px; background: #000; }
-        .btn { width: 100%; padding: 20px; background: #22c55e; border: none; border-radius: 10px; font-weight: bold; margin-top: 15px; color: black; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NFS-e Minimal Scanner</title>
+<style>
+  body { margin:0; background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; font-family:monospace; color:#fff; gap:16px; padding: 20px; }
+  video { width:100%; max-width:480px; height:auto; border:3px solid #333; }
+  #status { font-size:16px; padding:12px; border-radius:6px; background:#222; text-align:center; width:100%; max-width:480px; }
+  #result { display:none; background:#111; padding:20px; border:1px solid #0f0; width:100%; max-width:480px; border-radius:8px; text-align:center; }
+  button { padding:15px 32px; font-size:16px; cursor:pointer; border:none; background:#0f0; color:#000; font-weight:bold; border-radius:4px; width:100%; max-width:480px; }
+</style>
 </head>
 <body>
 
-    <h2>Scanner NFS-e</h2>
-    <div id="qr-reader"></div>
-    <div id="status" style="margin-top:15px; color:#aaa;">Clique no botão abaixo para iniciar</div>
-    <button class="btn" onclick="iniciar()">LIGAR CÂMERA</button>
+  <video id="v" autoplay muted playsinline></video>
+  <div id="status">Clique em Iniciar</div>
+  
+  <div id="result">
+    <div id="data-display" style="margin-bottom:20px;"></div>
+    <button onclick="enviar()">ENVIAR PARA PLANILHA</button>
+  </div>
 
-    <div id="res" style="display:none; margin-top:20px;">
-        <p id="info" style="color:white;"></p>
-        <button class="btn" style="background:#007bff; color:white;" onclick="enviar()">ENVIAR PARA PLANILHA</button>
-    </div>
+  <button id="btn-init" onclick="init()">Iniciar Câmera</button>
 
-    <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAfwg-jei3GEW34UAMVRwRTw0TTh652rP8So1E3ebgf1fmPRKy-2doN-rP3kJZzt_P3g/exec';
-        let notaDados = {};
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAfwg-jei3GEW34UAMVRwRTw0TTh652rP8So1E3ebgf1fmPRKy-2doN-rP3kJZzt_P3g/exec';
+let notaDados = {};
 
-        function iniciar() {
-            const html5QrCode = new Html5Qrcode("qr-reader");
-            html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (t) => {
-                html5QrCode.stop();
-                document.getElementById('status').innerText = "Lido! Processando...";
-                processar(t);
-            });
-        }
+async function init() {
+  if (!('BarcodeDetector' in window)) { alert('Use Chrome ou Edge'); return; }
+  const det = new BarcodeDetector({ formats: ['qr_code'] });
+  document.getElementById('btn-init').style.display = 'none';
+  document.getElementById('status').textContent = '📷 Abrindo câmera...';
 
-        async function processar(url) {
-            try {
-                const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
-                const html = await res.text();
-                const doc = new DOMParser().parseFromString(html, 'text/html').body.innerText;
-                notaDados = {
-                    n: doc.match(/Número da NFS-e\s*\n\s*(\d+)/)?.[1] || "—",
-                    v: doc.match(/Valor Líquido da NFS-e\s*\n\s*(R\$\s*[\d.,]+)/)?.[1] || "—"
-                };
-                document.getElementById('info').innerHTML = `Nota: ${notaDados.n}<br>Valor: ${notaDados.v}`;
-                document.getElementById('res').style.display = 'block';
-                document.getElementById('status').innerText = "Dados extraídos.";
-            } catch(e) { document.getElementById('status').innerText = "Erro: " + e.message; }
-        }
+  const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+  const v = document.getElementById('v');
+  v.srcObject = stream;
+  await v.play();
 
-        async function enviar() {
-            document.getElementById('status').innerText = "Enviando...";
-            // O segredo para não dar "Failed to fetch": modo no-cors
-            await fetch(`${SCRIPT_URL}?n=${encodeURIComponent(notaDados.n)}&v=${encodeURIComponent(notaDados.v)}`, {
-                method: 'GET',
-                mode: 'no-cors'
-            });
-            alert("Sucesso!");
-            location.reload();
-        }
-    </script>
+  async function scan() {
+    const codes = await det.detect(v);
+    if (codes.length > 0) {
+      document.getElementById('status').textContent = '✅ QR LIDO!';
+      document.getElementById('status').style.background = '#060';
+      v.style.display = 'none';
+      processar(codes[0].rawValue);
+    } else {
+      setTimeout(scan, 200);
+    }
+  }
+  scan();
+}
+
+async function processar(url) {
+  document.getElementById('status').textContent = '🔍 Buscando dados da nota...';
+  try {
+    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+    const html = await res.text();
+    notaDados = {
+      n: html.match(/(?:Número da NFS-e|Número)\s*[:\s]*(\d+)/i)?.[1] || "—",
+      v: html.match(/(?:Valor Líquido|Valor)\s*[:\s]*(R\$\s*[\d.,]+)/i)?.[1] || "—"
+    };
+    document.getElementById('data-display').innerHTML = `NOTA: ${notaDados.n}<br>VALOR: ${notaDados.v}`;
+    document.getElementById('result').style.display = 'block';
+  } catch(e) { document.getElementById('status').textContent = '❌ Erro: ' + e.message; }
+}
+
+async function enviar() {
+  document.getElementById('status').textContent = '🚀 Enviando...';
+  const url = `${SCRIPT_URL}?n=${encodeURIComponent(notaDados.n)}&v=${encodeURIComponent(notaDados.v)}`;
+  await fetch(url, { method: 'GET', mode: 'no-cors' });
+  alert("✅ Sucesso!");
+  location.reload();
+}
+</script>
 </body>
 </html>
