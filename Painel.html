@@ -14,17 +14,8 @@
   }
   html, body { height: 100%; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; }
 
-  /* Login */
-  .login-overlay {
-    position: fixed; inset: 0; background: var(--bg);
-    display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px;
-  }
-  .login-box {
-    width: 100%; max-width: 380px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 28px;
-    display: flex; flex-direction: column; gap: 18px;
-  }
+  .login-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+  .login-box { width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px; display: flex; flex-direction: column; gap: 18px; }
   .login-logo { display: flex; align-items: center; gap: 12px; }
   .login-logo-mark { width: 40px; height: 40px; background: var(--green); border-radius: 10px; display: grid; place-items: center; font-size: 20px; }
   .login-title { font-size: 20px; font-weight: 700; }
@@ -33,96 +24,59 @@
   .input-label { font-size: 12px; color: var(--muted); font-weight: 500; }
   .input { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 11px 14px; color: var(--text); font-size: 15px; outline: none; transition: border-color 0.15s; width: 100%; }
   .input:focus { border-color: var(--green); }
+  select.input { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+  select.input option { background: #18181b; }
   .login-btn { padding: 13px; background: var(--green); color: #000; border: none; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; }
   .login-btn:hover { background: #16a34a; }
   .login-error { color: var(--red); font-size: 12px; text-align: center; display: none; }
 
-  /* App */
   .app { display: none; flex-direction: column; height: 100vh; }
-
-  /* Header */
-  .header {
-    padding: 14px 24px; border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-    background: var(--bg); position: sticky; top: 0; z-index: 10;
-  }
+  .header { padding: 14px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--bg); position: sticky; top: 0; z-index: 10; }
   .header-left { display: flex; align-items: center; gap: 12px; }
   .header-logo { width: 32px; height: 32px; background: var(--green); border-radius: 8px; display: grid; place-items: center; font-size: 16px; }
   .header-title { font-size: 16px; font-weight: 700; }
   .header-sub { font-size: 12px; color: var(--muted); }
   .header-right { display: flex; align-items: center; gap: 10px; }
-
-  .pill {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 12px; padding: 5px 12px;
-    border-radius: 20px; border: 1px solid var(--border);
-    background: var(--surface); color: var(--muted);
-  }
+  .pill { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); }
   .pill.ok { border-color: var(--green-dim); background: var(--green-bg); color: var(--green); }
   .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-  .pill-dot.pulse { animation: pulse 1.5s ease-in-out infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  /* Pisca só quando chega nota nova, não o tempo todo */
+  .pill-dot.pulse { animation: pulse 1s ease-in-out 3; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
 
-  /* Empty */
   .empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--faint); text-align: center; padding: 40px; }
   .empty-icon { font-size: 56px; opacity: 0.3; }
   .empty-title { font-size: 16px; font-weight: 600; }
   .empty-sub { font-size: 13px; line-height: 1.6; }
 
-  /* List */
   .list { flex: 1; overflow-y: auto; padding: 16px 24px; display: flex; flex-direction: column; gap: 10px; }
 
-  /* Card */
-  .nota-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 10px; overflow: hidden;
-    animation: slideIn 0.3s ease;
-  }
-  .nota-card.new { border-color: var(--green-dim); }
+  .nota-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .nota-card.new { border-color: var(--green-dim); animation: slideIn 0.3s ease; }
   @keyframes slideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
 
-  .nota-header {
-    padding: 10px 16px; background: var(--surface2);
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  }
+  .nota-header { padding: 10px 16px; background: var(--surface2); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .nota-header-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
   .nota-num { font-size: 13px; font-weight: 700; color: var(--green); white-space: nowrap; }
   .nota-prestador { font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .nota-valor { font-size: 12px; color: var(--muted); white-space: nowrap; }
 
   .nota-body { padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
-  .chave-text {
-    font-family: monospace; font-size: 13px; color: var(--text);
-    word-break: break-all; flex: 1; line-height: 1.5;
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: 6px; padding: 10px 12px;
-  }
-  .copy-btn {
-    padding: 10px 18px; background: var(--green); color: #000;
-    border: none; border-radius: 8px; font-size: 13px; font-weight: 700;
-    cursor: pointer; white-space: nowrap; flex-shrink: 0;
-    display: flex; align-items: center; gap: 6px; transition: all 0.15s;
-  }
+  .chave-text { font-family: monospace; font-size: 13px; color: var(--text); word-break: break-all; flex: 1; line-height: 1.5; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; }
+  .copy-btn { padding: 10px 18px; background: var(--green); color: #000; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: all 0.15s; }
   .copy-btn:hover { background: #16a34a; }
   .copy-btn.copied { background: var(--blue); color: #fff; }
 
-  .nota-footer {
-    padding: 7px 16px; border-top: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-    font-size: 11px; color: var(--faint);
-  }
+  .nota-footer { padding: 7px 16px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--faint); }
   .usuario-tag { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 2px 8px; font-size: 11px; color: var(--muted); }
   .new-badge { background: var(--green-bg); border: 1px solid var(--green-dim); border-radius: 4px; padding: 2px 8px; font-size: 10px; font-weight: 700; color: var(--green); }
 
-  /* Toast */
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(12px); background: var(--text); color: var(--bg); font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 8px; opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 200; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
 
-<!-- Login -->
 <div class="login-overlay" id="loginOverlay">
   <div class="login-box">
     <div class="login-logo">
@@ -133,36 +87,43 @@
       </div>
     </div>
     <div class="input-group">
+      <div class="input-label">Quem é você?</div>
+      <select class="input" id="nomeSelect">
+        <option value="">Selecione seu nome...</option>
+        <option value="João">João</option>
+        <option value="Susane">Susane</option>
+      </select>
+    </div>
+    <div class="input-group">
       <div class="input-label">Senha de acesso</div>
-      <input class="input" id="senhaInput" type="password" placeholder="••••••" autofocus>
+      <input class="input" id="senhaInput" type="password" placeholder="••••••">
     </div>
     <button class="login-btn" onclick="fazerLogin()">Entrar</button>
-    <div class="login-error" id="loginError">Senha incorreta</div>
+    <div class="login-error" id="loginError"></div>
   </div>
 </div>
 
-<!-- App -->
 <div class="app" id="app">
   <div class="header">
     <div class="header-left">
       <div class="header-logo">📄</div>
       <div>
         <div class="header-title">Painel NFS-e</div>
-        <div class="header-sub">Contourline — atualização automática</div>
+        <div class="header-sub" id="headerSub">Contourline</div>
       </div>
     </div>
     <div class="header-right">
       <div class="pill" id="countPill">0 notas</div>
-      <div class="pill" id="syncPill">
+      <div class="pill ok" id="syncPill">
         <div class="pill-dot" id="syncDot"></div>
-        <span id="syncText">conectando...</span>
+        <span id="syncText">ao vivo</span>
       </div>
     </div>
   </div>
 
   <div class="empty" id="emptyState">
     <div class="empty-icon">📭</div>
-    <div class="empty-title">Aguardando notas</div>
+    <div class="empty-title">Nenhuma nota ainda</div>
     <div class="empty-sub">Escaneie um QR code pelo celular<br>a chave aparece aqui automaticamente</div>
   </div>
 
@@ -172,82 +133,87 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ── CONFIG ────────────────────────────────────────────
 const SENHA      = 'contourline2024';
+const USUARIOS   = ['João', 'Susane'];
 const SHEET_ID   = '1330tKi9srogL71KVphJlTYuh-CUFjRX71LBuEZf8CIY';
 const SHEET_NAME = 'NFS-e';
-const INTERVALO  = 5000; // ms — verifica a cada 5 segundos
-// ─────────────────────────────────────────────────────
+const INTERVALO  = 5000;
 
-let notas = [], ultimoId = null, intervaloAtivo = null;
+let notas = [], ultimoHash = null, intervaloAtivo = null, usuarioAtual = '';
 
 // ── LOGIN ─────────────────────────────────────────────
 function fazerLogin() {
-  if (document.getElementById('senhaInput').value === SENHA) {
-    sessionStorage.setItem('nfse_painel_auth', '1');
-    mostrarPainel();
-  } else {
-    document.getElementById('loginError').style.display = 'block';
-  }
+  const nome  = document.getElementById('nomeSelect').value;
+  const senha = document.getElementById('senhaInput').value;
+  const erro  = document.getElementById('loginError');
+  if (!nome)           { erro.style.display = 'block'; erro.textContent = 'Selecione seu nome'; return; }
+  if (senha !== SENHA) { erro.style.display = 'block'; erro.textContent = 'Senha incorreta'; return; }
+  sessionStorage.setItem('nfse_usuario', nome);
+  mostrarPainel(nome);
 }
-function mostrarPainel() {
+
+function mostrarPainel(nome) {
+  usuarioAtual = nome;
   document.getElementById('loginOverlay').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
+  document.getElementById('headerSub').textContent = `Olá, ${nome} — atualização automática`;
   buscarNotas();
   if (!intervaloAtivo) intervaloAtivo = setInterval(buscarNotas, INTERVALO);
 }
-// Restaura sessão ao recarregar
+
+// Restaura sessão
 (function(){
-  if (sessionStorage.getItem('nfse_painel_auth') === '1') mostrarPainel();
+  const salvo = sessionStorage.getItem('nfse_usuario');
+  if (salvo) mostrarPainel(salvo);
 })();
+
 document.getElementById('senhaInput').addEventListener('keydown', e => { if (e.key === 'Enter') fazerLogin(); });
 
 // ── FETCH SHEETS ──────────────────────────────────────
 async function buscarNotas() {
-  setSyncStatus('sincronizando...', false);
   try {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}&t=${Date.now()}`;
     const resp = await fetch(url);
     const text = await resp.text();
-
-    // A API do Sheets retorna um JSON embrulhado em callback — precisa limpar
     const json = JSON.parse(text.replace(/^[^\{]+/, '').replace(/[^\}]+$/, ''));
     const rows = json.table?.rows || [];
 
-    if (rows.length === 0) { setSyncStatus('ao vivo', true); return; }
+    // Colunas do Sheets: Chave(0), Nº(1), Data(2), Prestador(3), CNPJ(4), Valor(5), Descrição(6), Usuário(7), Registrado(8)
+    const parsed = rows
+      .map(r => ({
+        chave:     String(r.c[0]?.v || '—'),
+        numero:    String(r.c[1]?.v || '—'),
+        data_em:   String(r.c[2]?.v || '—'),
+        prestador: String(r.c[3]?.v || '—'),
+        cnpj:      String(r.c[4]?.v || '—'),
+        valor:     String(r.c[5]?.v || '—'),
+        usuario:   String(r.c[7]?.v || '—'),
+        registrado:String(r.c[8]?.v || ''),
+      }))
+      .filter(n => n.chave !== '—' && n.chave !== 'Chave'); // remove cabeçalho e vazios
 
-    // Converte rows em objetos (ignora cabeçalho linha 0 se for texto)
-    const parsed = rows.map(r => ({
-      chave:     r.c[6]?.v || '—',
-      numero:    r.c[0]?.v || '—',
-      data_em:   r.c[1]?.v || '—',
-      prestador: r.c[2]?.v || '—',
-      cnpj:      r.c[3]?.v || '—',
-      valor:     r.c[4]?.v || '—',
-      descricao: r.c[5]?.v || '—',
-      usuario:   r.c[7]?.v || '—',
-      timestamp: r.c[8]?.v || '',
-      id:        String(r.c[0]?.v) + String(r.c[1]?.v) // id único por nota
-    })).filter(n => n.numero !== 'Nº NFS-e' && n.numero !== '—'); // remove cabeçalho e vazios
+    // Filtra pelo usuário logado
+    const minhas = parsed.filter(n => n.usuario === usuarioAtual).reverse();
 
-    // Inverte pra mostrar mais recente primeiro
-    parsed.reverse();
+    // Verifica se chegou nota nova (compara hash)
+    const novoHash = minhas.map(n => n.chave).join('|');
+    const temNova  = ultimoHash !== null && novoHash !== ultimoHash;
+    ultimoHash = novoHash;
 
-    // Verifica se chegou nota nova
-    const novoId = parsed[0]?.id;
-    const temNova = ultimoId !== null && novoId !== ultimoId;
-    ultimoId = novoId;
-
-    notas = parsed;
+    notas = minhas;
     renderNotas(temNova);
-    setSyncStatus('ao vivo', true);
 
     if (temNova) {
-      showToast(`✓ Nova nota: ${parsed[0].prestador.split(' ').slice(0,2).join(' ')}`);
+      showToast(`✓ Nova nota: ${minhas[0].prestador.split(' ').slice(0,2).join(' ')}`);
+      // Pisca dot só quando chega nota nova
+      const dot = document.getElementById('syncDot');
+      dot.className = 'pill-dot pulse';
+      setTimeout(() => dot.className = 'pill-dot', 3500);
     }
 
   } catch(e) {
-    setSyncStatus('erro ao sincronizar', false);
+    // Falha silenciosa — não pisca nem mostra erro a cada 5s
+    console.warn('Sync error:', e.message);
   }
 }
 
@@ -255,16 +221,13 @@ async function buscarNotas() {
 function renderNotas(temNova) {
   const list  = document.getElementById('noteList');
   const empty = document.getElementById('emptyState');
-  const count = document.getElementById('countPill');
-
-  count.textContent = notas.length + (notas.length === 1 ? ' nota' : ' notas');
+  document.getElementById('countPill').textContent = notas.length + (notas.length === 1 ? ' nota' : ' notas');
 
   if (notas.length === 0) {
     empty.style.display = 'flex';
     list.style.display  = 'none';
     return;
   }
-
   empty.style.display = 'none';
   list.style.display  = 'flex';
 
@@ -279,9 +242,7 @@ function renderNotas(temNova) {
       </div>
       <div class="nota-body">
         <div class="chave-text">${n.chave}</div>
-        <button class="copy-btn" id="btn-${i}" onclick="copiar(${i})">
-          📋 Copiar
-        </button>
+        <button class="copy-btn" id="btn-${i}" onclick="copiar(${i})">📋 Copiar</button>
       </div>
       <div class="nota-footer">
         <span>${n.data_em}</span>
@@ -294,7 +255,6 @@ function renderNotas(temNova) {
   `).join('');
 }
 
-// ── COPIAR ──────────────────────────────────────────────
 function copiar(i) {
   navigator.clipboard.writeText(notas[i].chave).then(() => {
     const btn = document.getElementById(`btn-${i}`);
@@ -303,13 +263,6 @@ function copiar(i) {
     setTimeout(() => { btn.className = 'copy-btn'; btn.innerHTML = '📋 Copiar'; }, 2000);
     showToast('Chave copiada!');
   });
-}
-
-// ── HELPERS ─────────────────────────────────────────────
-function setSyncStatus(text, ok) {
-  document.getElementById('syncPill').className = 'pill' + (ok ? ' ok' : '');
-  document.getElementById('syncDot').className  = 'pill-dot' + (ok ? ' pulse' : '');
-  document.getElementById('syncText').textContent = text;
 }
 
 function showToast(msg) {
