@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>NFe Scanner</title>
+<title>NFS-e Scanner</title>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.9.0/jsrsasign-all-min.js"></script>
 <style>
@@ -115,7 +115,7 @@
         </svg>
       </div>
       <div>
-        <div class="logo-text">NFe Scanner</div>
+        <div class="logo-text">NFS-e Scanner</div>
         <div class="logo-sub">Contourline</div>
       </div>
     </div>
@@ -132,7 +132,7 @@
 
   <div class="preview-card" id="previewCard">
     <div class="preview-header">
-      <span>Dados extraídos da Chave</span>
+      <span>Dados extraídos</span>
       <span class="ok-tag">✓ Leitura OK</span>
     </div>
     <div id="previewBody"></div>
@@ -162,34 +162,7 @@ const SHEET_ID   = '1330tKi9srogL71KVphJlTYuh-CUFjRX71LBuEZf8CIY';
 const SHEET_NAME = 'NFS-e';
 const SERVICE_ACCOUNT = {
   client_email: 'aplicativo-nfe@i-informatics-477817-j5.iam.gserviceaccount.com',
-  private_key: `-----BEGIN PRIVATE KEY-----
-MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDDjiZ/DbQ2brYe
-L8CuYRpPiGWKKmwjfYpip/NJBemTGu8HNigwu6IYmnalNnAeTkuudFYajjXyqIn0
-kU+tAPqa0Zvic1naScPUSZkxFRkZ22EkV0xHy0K8v3222YqWk+r1gvG8LVd4P4ak
-4l0AA6P3sfme+5mAHL3ival3AjbJS2pd5NMh+kIbfBBJgyqq7cFNiqCrICscmSZV
-wnzcuulbOU4odTyTZGp7Drt5K0zEND8vkM7aeMxqnfev+uWHsXlBP8bYtVvaTLCb
-s3s4V0fWqcfyOtMMCT22SBzuxmDVvoJTsm+dfDl02xqVVSMcX1udQlykIH8z8Q2a
-rLAd/tmbAgMBAAECggEAQYIi/zjV/84CkAYrI78/kxj7+tbPNuxdKUNdyj6Cylah
-b+cCe6C/YkKMMDgWQvCzhZNPLMIq7EjtPdJXwHqteKNy9t7xYKCJS1oESV7p87F7
-zzK3SO2cQ6JaOKCTPnH6qZfd5s3BmXSeZCm4QcL2cIlcN5fNCg+WxJgIZueE9tUI
-cod/SaZ7HVeIQq4KHZ1B1QGRDzKcGP38On4feHvO+sDOyeS8uqndgCy4M0cJFvzw
-W5hA6PstVhyH3h2qwmM/qINJP2CYj6Y5jLAwV9pivVUNTDRUS/CXuJqv07bl+noG
-OAmu+dn4owCU0wTPtUa/rLtAU1V1Y5vvjmnfjlFA0QKBgQDt6Un8nrvU5R3H8hZR
-JeAzzKnyhFfSn64D/SxUuJ2mXpLtGSAqvMqNcCfI2HTG8EKZlC6zNf/rxkWt6oIe
-ufhjq9ihEPO5jLiiVx78BHIn/fU0KJ47y2Uu4hzt20AgtvxScXjYns3tn7x0VG81
-HIxhfgYMXYuoIY+z1tJsZxzPnQKBgQDSbHFl1UqjXe/0CCbmNe4xGcHNRtp/fHN7
-Di/YiaobPZRVag71QMzXoaxKMzREmPCyxwK3mim+dgGyGqutW/Xt9pKTMm5CqKO8
-s7XDvnxzXTJ7kLAyx8dM93MISbcQ4MsWdmktWppltT+U1kbMdkTGWrfJ3fyuqqF+
-lep5Kj60lwKBgBf5Ridap3rQi6u2TWFn+6u8l/OEOoVS6eok/O6cm+ZD6XJS8dbc
-p1yRTLEEft/9Hfjz4bDVZDCSDjt0QiBuhQUmL/IrDyRHdeOF++1RVV+KS8cxwKAt
-4shSqK+fRFsHlW2JWbAacI3dZtQiHgKwGcVJObrNQmFy4FQy9YlO6qxRAoGAALC4
-YoQjnYuWWO+Z6RFuOZ0DBMBhwR9QZavzPjudYj9+eBVD/Uv8IAz4urmWR09VItEC
-UkXgMy7B7Kqnu4bctK4lZvQ4ZmGVP+46/2xljh9VJhCgc1oybi81omZTgmuqXuV+
-jNaKQSEqFzvouYz9xsTPa4sd5BjNNNQbE9CuqfsCgYEA29uURNvbIqhw0irsSmpg
-Wj1dk4Flx4lUCVlHIV+iEN1EnembUsAQ6TNy2QDfRvvZ9t6X5NQaOuMEB3kAkJUN
-3J2bOXUtPVAxL1B1OzMrlh6Z1egZbt99lXwp776C2QlzI7wBm8gGL1FVDYgURYgW
-/I2KhSM8nDFCQCxHzEmBOac=
------END PRIVATE KEY-----`
+  private_key: "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDDjiZ/DbQ2brYe\nL8CuYRpPiGWKKmwjfYpip/NJBemTGu8HNigwu6IYmnalNnAeTkuudFYajjXyqIn0\nkU+tAPqa0Zvic1naScPUSZkxFRkZ22EkV0xHy0K8v3222YqWk+r1gvG8LVd4P4ak\n4l0AA6P3sfme+5mAHL3ival3AjbJS2pd5NMh+kIbfBBJgyqq7cFNiqCrICscmSZV\nwnzcuulbOU4odTyTZGp7Drt5K0zEND8vkM7aeMxqnfev+uWHsXlBP8bYtVvaTLCb\ns3s4V0fWqcfyOtMMCT22SBzuxmDVvoJTsm+dfDl02xqVVSMcX1udQlykIH8z8Q2a\nrLAd/tmbAgMBAAECggEAQYIi/zjV/84CkAYrI78/kxj7+tbPNuxdKUNdyj6Cylah\nb+cCe6C/YkKMMDgWQvCzhZNPLMIq7EjtPdJXwHqteKNy9t7xYKCJS1oESV7p87F7\nzzK3SO2cQ6JaOKCTPnH6qZfd5s3BmXSeZCm4QcL2cIlcN5fNCg+WxJgIZueE9tUI\ncod/SaZ7HVeIQq4KHZ1B1QGRDzKcGP38On4feHvO+sDOyeS8uqndgCy4M0cJFvzw\nW5hA6PstVhyH3h2qwmM/qINJP2CYj6Y5jLAwV9pivVUNTDRUS/CXuJqv07bl+noG\nOAmu+dn4owCU0wTPtUa/rLtAU1V1Y5vvjmnfjlFA0QKBgQDt6Un8nrvU5R3H8hZR\nJeAzzKnyhFfSn64D/SxUuJ2mXpLtGSAqvMqNcCfI2HTG8EKZlC6zNf/rxkWt6oIe\nufhjq9ihEPO5jLiiVx78BHIn/fU0KJ47y2Uu4hzt20AgtvxScXjYns3tn7x0VG81\nHIxhfgYMXYuoIY+z1tJsZxzPnQKBgQDSbHFl1UqjXe/0CCbmNe4xGcHNRtp/fHN7\nDi/YiaobPZRVag71QMzXoaxKMzREmPCyxwK3mim+dgGyGqutW/Xt9pKTMm5CqKO8\ns7XDvnxzXTJ7kLAyx8dM93MISbcQ4MsWdmktWppltT+U1kbMdkTGWrfJ3fyuqqF+\nlep5Kj60lwKBgBf5Ridap3rQi6u2TWFn+6u8l/OEOoVS6eok/O6cm+ZD6XJS8dbc\np1yRTLEEft/9Hfjz4bDVZDCSDjt0QiBuhQUmL/IrDyRHdeOF++1RVV+KS8cxwKAt\n4shSqK+fRFsHlW2JWbAacI3dZtQiHgKwGcVJObrNQmFy4FQy9YlO6qxRAoGAALC4\nYoQjnYuWWO+Z6RFuOZ0DBMBhwR9QZavzPjudYj9+eBVD/Uv8IAz4urmWR09VItEC\nUkXgMy7B7Kqnu4bctK4lZvQ4ZmGVP+46/2xljh9VJhCgc1oybi81omZTgmuqXuV+\njNaKQSEqFzvouYz9xsTPa4sd5BjNNNQbE9CuqfsCgYEA29uURNvbIqhw0irsSmpg\nWj1dk4Flx4lUCVlHIV+iEN1EnembUsAQ6TNy2QDfRvvZ9t6X5NQaOuMEB3kAkJUN\n3J2bOXUtPVAxL1B1OzMrlh6Z1egZbt99lXwp776C2QlzI7wBm8gGL1FVDYgURYgW\n/I2KhSM8nDFCQCxHzEmBOac=\n-----END PRIVATE KEY-----\n"
 };
 
 let currentData = null, sessionHistory = [], html5QrCode = null, active = false;
@@ -222,54 +195,66 @@ function startScanner() {
   });
 }
 
-// NOVA FUNÇÃO: Extrai dados diretos, sem tentar acessar sites externos
 async function onQRFound(text) {
   if (!active) return;
   active = false;
   try { await html5QrCode.stop(); } catch(_) {}
 
-  setStatus('QR detectado! Processando link...', 'info');
+  setStatus('QR detectado! Buscando dados...', 'info');
 
-  // Regex para buscar exatamente 44 números em sequência
-  const regex = /\d{44}/;
-  const match = text.match(regex);
-
-  if (match) {
-    const chaveCompleta = match[0];
-    
-    // Podemos descobrir algumas coisas só lendo os números da própria chave:
-    const mesAno = chaveCompleta.substring(4, 6) + '/' + chaveCompleta.substring(2, 4);
-    const cnpj = chaveCompleta.substring(6, 20).replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
-    const numNota = chaveCompleta.substring(25, 34).replace(/^0+/, ''); // Remove os zeros à esquerda
-
-    currentData = {
-      numero: numNota || 'N/A',
-      data_em: mesAno,
-      prestador: 'Lido via QR Code', // Como não baixamos o HTML, não temos o nome
-      cnpj: cnpj,
-      valor: '—', // O valor não vai na chave
-      descricao: 'Chave NF-e extraída diretamente',
-      chave: chaveCompleta,
-      url: text
-    };
-
-    showPreview(currentData);
+  try {
+    const data = await fetchNFSe(text);
+    currentData = data;
+    showPreview(data);
     setStatus('Confirme os dados e envie para o Sheets', 'ok');
-  } else {
-    setStatus('Erro: O QR Code não contém uma chave de 44 dígitos.', 'error');
-    // Espera 3 segundos para o usuário ler a mensagem de erro antes de religar a câmera
-    setTimeout(() => {
-      startScanner();
-    }, 3000);
+  } catch(e) {
+    setStatus('Erro: ' + e.message, 'error');
+    startScanner();
   }
+}
+
+async function fetchNFSe(url) {
+  const proxies = [
+    u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+    u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+    u => `https://thingproxy.freeboard.io/fetch/${u}`,
+  ];
+  for (const p of proxies) {
+    try {
+      const r = await fetch(p(url), { signal: AbortSignal.timeout(8000) });
+      if (!r.ok) continue;
+      const html = await r.text();
+      if (html.length > 200) return parseNFSe(html, url);
+    } catch(_) {}
+  }
+  throw new Error('Não foi possível buscar a nota.');
+}
+
+function parseNFSe(html, url) {
+  const doc  = new DOMParser().parseFromString(html, 'text/html');
+  const text = doc.body ? doc.body.innerText : html;
+  const ex   = re => { const m = text.match(re); return m ? m[1].trim() : '—'; };
+  return {
+    numero:    ex(/Número da NFS-e\s*\n\s*(\d+)/),
+    data_em:   ex(/Data e Hora de Emissão da NFS-e\s*\n\s*([\d\/]+ [\d:]+)/),
+    prestador: ex(/Nome \/ Nome Empresarial\s*\n\s*([^\n]+)/),
+    cnpj:      ex(/CNPJ \/ CPF \/ NIF\s*\n\s*([\d.\/\-]+)/),
+    valor:     ex(/Valor Líquido da NFS-e\s*\n\s*(R\$\s*[\d.,]+)/),
+    descricao: ex(/Descrição do Serviço\s*\n\s*([^\n]{5,})/),
+    chave:     ex(/Chave de Acesso da NFS-e\s*\n\s*([A-Za-z0-9]+)/),
+    url
+  };
 }
 
 function showPreview(d) {
   document.getElementById('previewBody').innerHTML = [
-    { name: 'Nº NFe',      val: d.numero,    cls: 'hi' },
-    { name: 'Mês/Ano',     val: d.data_em,   cls: '' },
-    { name: 'CNPJ',        val: d.cnpj,      cls: 'mono' },
-    { name: 'Chave',       val: d.chave,     cls: 'mono' },
+    { name: 'Nº NFS-e',   val: d.numero,    cls: 'hi' },
+    { name: 'Data',       val: d.data_em,   cls: '' },
+    { name: 'Prestador',  val: d.prestador, cls: '' },
+    { name: 'CNPJ',       val: d.cnpj,      cls: 'mono' },
+    { name: 'Valor',      val: d.valor,     cls: 'hi' },
+    { name: 'Serviço',    val: d.descricao, cls: '' },
+    { name: 'Chave',      val: d.chave,     cls: 'mono' },
   ].map(f => `<div class="field-row"><div class="field-name">${f.name}</div><div class="field-val ${f.cls}">${f.val}</div></div>`).join('');
 
   document.getElementById('previewCard').classList.add('show');
@@ -350,8 +335,8 @@ function renderHistory() {
     <div class="history-item">
       <div class="history-icon">🧾</div>
       <div class="history-info">
-        <div class="history-name">Final: ${h.chave.slice(-6)}</div>
-        <div class="history-meta">Nº ${h.numero}</div>
+        <div class="history-name">${h.prestador}</div>
+        <div class="history-meta">Nº ${h.numero} · ${h.valor}</div>
       </div>
       <div class="history-status">Enviado</div>
     </div>`).join('');
@@ -359,7 +344,7 @@ function renderHistory() {
 
 function setStatus(msg, type) {
   const el = document.getElementById('statusBar');
-  const loading = type === 'info' && (msg.includes('Processando') || msg.includes('Gravando') || msg.includes('Autenticando'));
+  const loading = type === 'info' && (msg.includes('Buscando') || msg.includes('Gravando') || msg.includes('Autenticando'));
   el.className = 'status-bar' + (type ? ' ' + type : '');
   el.innerHTML = (loading ? '<div class="spinner"></div>' : '') + `<span>${msg}</span>`;
 }
