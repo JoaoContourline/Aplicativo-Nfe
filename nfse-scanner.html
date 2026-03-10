@@ -2,26 +2,27 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NFS-e Scanner Final</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>NFS-e Pro Scanner</title>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
   body { background: #09090b; color: #fff; font-family: sans-serif; padding: 20px; }
-  #qr-reader { width: 100%; border: 2px solid #22c55e; border-radius: 12px; overflow: hidden; }
-  .btn { width: 100%; padding: 15px; background: #22c55e; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; color: black; }
+  #qr-reader { width: 100%; border: 2px solid #22c55e; border-radius: 12px; overflow: hidden; background: #000; }
+  .btn { width: 100%; padding: 18px; background: #22c55e; border: none; border-radius: 12px; font-weight: 800; margin-top: 15px; color: #000; }
+  #log { font-size: 10px; color: #666; margin-top: 15px; word-break: break-all; }
 </style>
 </head>
 <body>
 
   <div id="qr-reader"></div>
-  <div id="preview" style="display:none; margin-top:20px;">
+  <div id="preview" style="display:none; margin-top:20px; background:#18181b; padding:15px; border-radius:12px;">
     <div id="data"></div>
-    <button class="btn" onclick="sendToSheets()">ENVIAR PARA PLANILHA</button>
+    <button class="btn" id="sendBtn" onclick="sendToSheets()">ENVIAR PARA PLANILHA</button>
   </div>
-  <div id="log" style="font-size:10px; color:#666; margin-top:20px;"></div>
+  <div id="log">--- AGUARDANDO ---</div>
 
 <script>
-// URL FINAL QUE VOCÊ ME MANDOU
+// URL DO SEU SCRIPT (TERMINANDO EM /exec)
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAfwg-jei3GEW34UAMVRwRTw0TTh652rP8So1E3ebgf1fmPRKy-2doN-rP3kJZzt_P3g/exec';
 
 const html5QrCode = new Html5Qrcode("qr-reader");
@@ -31,7 +32,7 @@ html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (text)
 });
 
 async function fetchData(url) {
-  document.getElementById('log').innerText = "Buscando dados...";
+  document.getElementById('log').innerText = "Processando nota...";
   const r = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
   const b = await r.text();
   const doc = new DOMParser().parseFromString(b, 'text/html').body.innerText;
@@ -41,12 +42,12 @@ async function fetchData(url) {
     p: doc.match(/Nome \/ Nome Empresarial\s*\n\s*([^\n]+)/)?.[1] || "—",
     c: doc.match(/Chave de Acesso da NFS-e\s*\n\s*([A-Za-z0-9]+)/)?.[1] || "—"
   };
-  document.getElementById('data').innerHTML = `Nota: ${window.nota.n}<br>Valor: ${window.nota.v}`;
+  document.getElementById('data').innerHTML = `<b>Nota:</b> ${window.nota.n}<br><b>Valor:</b> ${window.nota.v}`;
   document.getElementById('preview').style.display = 'block';
 }
 
 async function sendToSheets() {
-  document.getElementById('log').innerText = "Enviando...";
+  document.getElementById('sendBtn').innerText = "ENVIANDO...";
   const formData = new FormData();
   formData.append('n', window.nota.n);
   formData.append('v', window.nota.v);
@@ -55,7 +56,7 @@ async function sendToSheets() {
 
   try {
     await fetch(SCRIPT_URL, { method: 'POST', body: formData });
-    alert("Enviado com sucesso!");
+    alert("✅ Enviado com sucesso!");
     location.reload();
   } catch(e) { document.getElementById('log').innerText = "Erro: " + e.message; }
 }
