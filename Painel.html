@@ -218,13 +218,13 @@ async function buscarNotas() {
 
     // Converte rows em objetos (ignora cabeçalho linha 0 se for texto)
     const parsed = rows.map(r => ({
+      chave:     r.c[6]?.v || '—',
       numero:    r.c[0]?.v || '—',
       data_em:   r.c[1]?.v || '—',
       prestador: r.c[2]?.v || '—',
       cnpj:      r.c[3]?.v || '—',
       valor:     r.c[4]?.v || '—',
       descricao: r.c[5]?.v || '—',
-      chave:     r.c[6]?.v || '—',
       usuario:   r.c[7]?.v || '—',
       timestamp: r.c[8]?.v || '',
       id:        String(r.c[0]?.v) + String(r.c[1]?.v) // id único por nota
