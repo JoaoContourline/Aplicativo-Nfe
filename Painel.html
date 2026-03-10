@@ -184,21 +184,29 @@ let notas = [], ultimoId = null, intervaloAtivo = null;
 // ── LOGIN ─────────────────────────────────────────────
 function fazerLogin() {
   if (document.getElementById('senhaInput').value === SENHA) {
-    document.getElementById('loginOverlay').style.display = 'none';
-    document.getElementById('app').style.display = 'flex';
-    buscarNotas();
-    intervaloAtivo = setInterval(buscarNotas, INTERVALO);
+    sessionStorage.setItem('nfse_painel_auth', '1');
+    mostrarPainel();
   } else {
     document.getElementById('loginError').style.display = 'block';
   }
 }
+function mostrarPainel() {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  buscarNotas();
+  if (!intervaloAtivo) intervaloAtivo = setInterval(buscarNotas, INTERVALO);
+}
+// Restaura sessão ao recarregar
+(function(){
+  if (sessionStorage.getItem('nfse_painel_auth') === '1') mostrarPainel();
+})();
 document.getElementById('senhaInput').addEventListener('keydown', e => { if (e.key === 'Enter') fazerLogin(); });
 
 // ── FETCH SHEETS ──────────────────────────────────────
 async function buscarNotas() {
   setSyncStatus('sincronizando...', false);
   try {
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}&t=${Date.now()}`;
     const resp = await fetch(url);
     const text = await resp.text();
 
