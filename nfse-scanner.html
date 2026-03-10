@@ -585,10 +585,32 @@ async function startCam() {
   setStatus('Conectando câmera...', '');
   try {
     stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+      video: {
+        facingMode: { ideal: 'environment' },
+        width:  { ideal: 3840 },
+        height: { ideal: 2160 }
+      }
     });
+
     video.srcObject = stream;
     await video.play();
+
+    // Ativa autofoco contínuo se disponível
+    try {
+      const track = stream.getVideoTracks()[0];
+      const caps  = track.getCapabilities();
+      const adv = {};
+      if (caps.focusMode && caps.focusMode.includes('continuous')) adv.focusMode = 'continuous';
+      if (caps.zoom) adv.zoom = caps.zoom.min; // zoom mínimo = campo mais amplo
+      if (Object.keys(adv).length) await track.applyConstraints({ advanced: [adv] });
+    } catch(_) {}
+
+    // Câmera traseira NÃO espelha
+    const track = stream.getVideoTracks()[0];
+    const settings = track.getSettings();
+    const isFront = settings.facingMode === 'user';
+    video.style.transform = isFront ? 'scaleX(-1)' : 'none';
+
     camOn = true;
     video.style.display = 'block';
     document.getElementById('camIdle').style.display = 'none';
@@ -632,32 +654,47 @@ function scanLoop() {
   if (!scanning) return;
   if (video.readyState === video.HAVE_ENOUGH_DATA) {
     const vw = video.videoWidth, vh = video.videoHeight;
+    const isFront = video.style.transform === 'scaleX(-1)';
 
-    // Pass 1 — frame completo (espelhado)
+    function drawMirrored(targetCtx, tw, th, sx, sy, sw, sh) {
+      if (isFront) {
+        targetCtx.save(); targetCtx.translate(tw, 0); targetCtx.scale(-1, 1);
+        targetCtx.drawImage(video, sx, sy, sw, sh, 0, 0, tw, th);
+        targetCtx.restore();
+      } else {
+        targetCtx.drawImage(video, sx, sy, sw, sh, 0, 0, tw, th);
+      }
+    }
+
+    // Pass 1 — frame completo
     canvas.width = vw; canvas.height = vh;
-    ctx.save(); ctx.translate(vw, 0); ctx.scale(-1, 1);
-    ctx.drawImage(video, 0, 0, vw, vh); ctx.restore();
+    drawMirrored(ctx, vw, vh, 0, 0, vw, vh);
     let code = tryQR(ctx, vw, vh);
 
-    // Pass 2 — zoom 2x centro
+    // Pass 2 — 2x zoom centro
     if (!code) {
       const cs = Math.min(vw, vh) * 0.55;
       const zw = Math.round(cs * 2), zh = Math.round(cs * 2);
       offscreen.width = zw; offscreen.height = zh;
-      offCtx.save(); offCtx.translate(zw, 0); offCtx.scale(-1, 1);
-      offCtx.drawImage(video, (vw-cs)/2, (vh-cs)/2, cs, cs, 0, 0, zw, zh);
-      offCtx.restore();
+      drawMirrored(offCtx, zw, zh, (vw-cs)/2, (vh-cs)/2, cs, cs);
       code = tryQR(offCtx, zw, zh);
     }
 
-    // Pass 3 — zoom 3x centro apertado
+    // Pass 3 — 3x zoom centro
     if (!code) {
       const cs = Math.min(vw, vh) * 0.35;
       const zw = Math.round(cs * 3), zh = Math.round(cs * 3);
       offscreen.width = zw; offscreen.height = zh;
-      offCtx.save(); offCtx.translate(zw, 0); offCtx.scale(-1, 1);
-      offCtx.drawImage(video, (vw-cs)/2, (vh-cs)/2, cs, cs, 0, 0, zw, zh);
-      offCtx.restore();
+      drawMirrored(offCtx, zw, zh, (vw-cs)/2, (vh-cs)/2, cs, cs);
+      code = tryQR(offCtx, zw, zh);
+    }
+
+    // Pass 4 — 4x zoom centro (QR minúsculo)
+    if (!code) {
+      const cs = Math.min(vw, vh) * 0.22;
+      const zw = Math.round(cs * 4), zh = Math.round(cs * 4);
+      offscreen.width = zw; offscreen.height = zh;
+      drawMirrored(offCtx, zw, zh, (vw-cs)/2, (vh-cs)/2, cs, cs);
       code = tryQR(offCtx, zw, zh);
     }
 
@@ -700,13 +737,24 @@ async function onQRFound(url) {
 
 // ── Fetch NFS-e ──────────────────────────────────────────
 async function fetchNFSe(url) {
-  // Usa proxy CORS público para buscar a página da prefeitura
-  const proxy = 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
-  const resp = await fetch(proxy);
-  if (!resp.ok) throw new Error('Falha ao buscar nota');
-  const json = await resp.json();
-  const html = json.contents;
-  return parseNFSe(html, url);
+  // Tenta múltiplos proxies CORS em sequência
+  const proxies = [
+    u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+    u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+    u => `https://thingproxy.freeboard.io/fetch/${u}`,
+  ];
+
+  let lastErr = null;
+  for (const makeProxy of proxies) {
+    try {
+      const proxyUrl = makeProxy(url);
+      const resp = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
+      if (!resp.ok) continue;
+      const html = await resp.text();
+      if (html && html.length > 200) return parseNFSe(html, url);
+    } catch(e) { lastErr = e; }
+  }
+  throw new Error('Não foi possível buscar a nota. Verifique a conexão.');
 }
 
 function parseNFSe(html, url) {
