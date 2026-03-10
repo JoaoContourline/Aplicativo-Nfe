@@ -6,75 +6,60 @@
     <title>Scanner NFS-e</title>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
-        body { background: #09090b; color: white; font-family: sans-serif; padding: 20px; margin: 0; }
-        #qr-reader { width: 100%; border: 2px solid #22c55e; border-radius: 10px; background: #000; }
-        .card { background: #18181b; padding: 15px; border-radius: 10px; margin-top: 20px; border: 1px solid #3f3f46; }
-        button { width: 100%; padding: 15px; background: #22c55e; border: none; border-radius: 10px; font-weight: bold; margin-top: 10px; color: black; }
+        body { background: #09090b; color: white; font-family: sans-serif; padding: 20px; text-align: center; }
+        #qr-reader { width: 100%; min-height: 250px; border: 2px solid #22c55e; border-radius: 10px; background: #000; }
+        .btn { width: 100%; padding: 20px; background: #22c55e; border: none; border-radius: 10px; font-weight: bold; margin-top: 15px; color: black; }
     </style>
 </head>
 <body>
 
-    <h2 id="titulo">Scanner NFS-e</h2>
+    <h2>Scanner NFS-e</h2>
     <div id="qr-reader"></div>
-    <div id="status" style="margin-top:10px; color:#aaa; font-size:12px;">Carregando câmera...</div>
+    <div id="status" style="margin-top:15px; color:#aaa;">Clique no botão abaixo para iniciar</div>
+    <button class="btn" onclick="iniciar()">LIGAR CÂMERA</button>
 
-    <div id="resultado" style="display:none;" class="card">
-        <p id="texto-nota" style="margin:0 0 10px 0;"></p>
-        <button onclick="enviar()">ENVIAR DADOS</button>
+    <div id="res" style="display:none; margin-top:20px;">
+        <p id="info" style="color:white;"></p>
+        <button class="btn" style="background:#007bff; color:white;" onclick="enviar()">ENVIAR PARA PLANILHA</button>
     </div>
 
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAfwg-jei3GEW34UAMVRwRTw0TTh652rP8So1E3ebgf1fmPRKy-2doN-rP3kJZzt_P3g/exec';
-        let dadosNota = {};
+        let notaDados = {};
 
-        // Inicia a câmera apenas quando a página estiver pronta
-        window.onload = () => {
+        function iniciar() {
             const html5QrCode = new Html5Qrcode("qr-reader");
-            html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, 
-                (decodedText) => {
-                    document.getElementById('status').innerText = "QR detectado! Processando...";
-                    html5QrCode.stop();
-                    processarNota(decodedText);
-                }
-            ).catch(err => {
-                document.getElementById('status').innerText = "Erro na câmera: " + err;
+            html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (t) => {
+                html5QrCode.stop();
+                document.getElementById('status').innerText = "Lido! Processando...";
+                processar(t);
             });
-        };
+        }
 
-        async function processarNota(url) {
-            document.getElementById('status').innerText = "Buscando dados da nota...";
+        async function processar(url) {
             try {
                 const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
                 const html = await res.text();
                 const doc = new DOMParser().parseFromString(html, 'text/html').body.innerText;
-                
-                dadosNota = {
+                notaDados = {
                     n: doc.match(/Número da NFS-e\s*\n\s*(\d+)/)?.[1] || "—",
-                    v: doc.match(/Valor Líquido da NFS-e\s*\n\s*(R\$\s*[\d.,]+)/)?.[1] || "—",
-                    p: doc.match(/Nome \/ Nome Empresarial\s*\n\s*([^\n]+)/)?.[1] || "—",
-                    c: doc.match(/Chave de Acesso da NFS-e\s*\n\s*([A-Za-z0-9]+)/)?.[1] || "—"
+                    v: doc.match(/Valor Líquido da NFS-e\s*\n\s*(R\$\s*[\d.,]+)/)?.[1] || "—"
                 };
-
-                document.getElementById('texto-nota').innerHTML = `<b>Nota:</b> ${dadosNota.n}<br><b>Valor:</b> ${dadosNota.v}`;
-                document.getElementById('resultado').style.display = 'block';
-                document.getElementById('status').innerText = "Leitura concluída.";
-            } catch(e) {
-                document.getElementById('status').innerText = "Erro ao buscar: " + e.message;
-            }
+                document.getElementById('info').innerHTML = `Nota: ${notaDados.n}<br>Valor: ${notaDados.v}`;
+                document.getElementById('res').style.display = 'block';
+                document.getElementById('status').innerText = "Dados extraídos.";
+            } catch(e) { document.getElementById('status').innerText = "Erro: " + e.message; }
         }
 
         async function enviar() {
-            document.getElementById('status').innerText = "Enviando para planilha...";
-            const fd = new FormData();
-            for(let key in dadosNota) fd.append(key, dadosNota[key]);
-            
-            try {
-                await fetch(SCRIPT_URL, { method: 'POST', body: fd });
-                alert("Enviado com sucesso!");
-                location.reload();
-            } catch(e) {
-                document.getElementById('status').innerText = "Erro no envio: " + e.message;
-            }
+            document.getElementById('status').innerText = "Enviando...";
+            // O segredo para não dar "Failed to fetch": modo no-cors
+            await fetch(`${SCRIPT_URL}?n=${encodeURIComponent(notaDados.n)}&v=${encodeURIComponent(notaDados.v)}`, {
+                method: 'GET',
+                mode: 'no-cors'
+            });
+            alert("Sucesso!");
+            location.reload();
         }
     </script>
 </body>
