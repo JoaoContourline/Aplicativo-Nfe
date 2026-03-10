@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>NFS-e Scanner</title>
+<title>NFe Scanner</title>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.9.0/jsrsasign-all-min.js"></script>
 <style>
@@ -115,7 +115,7 @@
         </svg>
       </div>
       <div>
-        <div class="logo-text">NFS-e Scanner</div>
+        <div class="logo-text">NFe Scanner</div>
         <div class="logo-sub">Contourline</div>
       </div>
     </div>
@@ -132,7 +132,7 @@
 
   <div class="preview-card" id="previewCard">
     <div class="preview-header">
-      <span>Dados extraídos</span>
+      <span>Dados extraídos da Chave</span>
       <span class="ok-tag">✓ Leitura OK</span>
     </div>
     <div id="previewBody"></div>
@@ -222,66 +222,54 @@ function startScanner() {
   });
 }
 
+// NOVA FUNÇÃO: Extrai dados diretos, sem tentar acessar sites externos
 async function onQRFound(text) {
   if (!active) return;
   active = false;
   try { await html5QrCode.stop(); } catch(_) {}
 
-  setStatus('QR detectado! Buscando dados...', 'info');
+  setStatus('QR detectado! Processando link...', 'info');
 
-  try {
-    const data = await fetchNFSe(text);
-    currentData = data;
-    showPreview(data);
+  // Regex para buscar exatamente 44 números em sequência
+  const regex = /\d{44}/;
+  const match = text.match(regex);
+
+  if (match) {
+    const chaveCompleta = match[0];
+    
+    // Podemos descobrir algumas coisas só lendo os números da própria chave:
+    const mesAno = chaveCompleta.substring(4, 6) + '/' + chaveCompleta.substring(2, 4);
+    const cnpj = chaveCompleta.substring(6, 20).replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+    const numNota = chaveCompleta.substring(25, 34).replace(/^0+/, ''); // Remove os zeros à esquerda
+
+    currentData = {
+      numero: numNota || 'N/A',
+      data_em: mesAno,
+      prestador: 'Lido via QR Code', // Como não baixamos o HTML, não temos o nome
+      cnpj: cnpj,
+      valor: '—', // O valor não vai na chave
+      descricao: 'Chave NF-e extraída diretamente',
+      chave: chaveCompleta,
+      url: text
+    };
+
+    showPreview(currentData);
     setStatus('Confirme os dados e envie para o Sheets', 'ok');
-  } catch(e) {
-    setStatus('Erro: ' + e.message, 'error');
-    startScanner();
+  } else {
+    setStatus('Erro: O QR Code não contém uma chave de 44 dígitos.', 'error');
+    // Espera 3 segundos para o usuário ler a mensagem de erro antes de religar a câmera
+    setTimeout(() => {
+      startScanner();
+    }, 3000);
   }
-}
-
-async function fetchNFSe(url) {
-  const proxies = [
-    u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-    u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-    u => `https://thingproxy.freeboard.io/fetch/${u}`,
-  ];
-  for (const p of proxies) {
-    try {
-      const r = await fetch(p(url), { signal: AbortSignal.timeout(8000) });
-      if (!r.ok) continue;
-      const html = await r.text();
-      if (html.length > 200) return parseNFSe(html, url);
-    } catch(_) {}
-  }
-  throw new Error('Não foi possível buscar a nota.');
-}
-
-function parseNFSe(html, url) {
-  const doc  = new DOMParser().parseFromString(html, 'text/html');
-  const text = doc.body ? doc.body.innerText : html;
-  const ex   = re => { const m = text.match(re); return m ? m[1].trim() : '—'; };
-  return {
-    numero:    ex(/Número da NFS-e\s*\n\s*(\d+)/),
-    data_em:   ex(/Data e Hora de Emissão da NFS-e\s*\n\s*([\d\/]+ [\d:]+)/),
-    prestador: ex(/Nome \/ Nome Empresarial\s*\n\s*([^\n]+)/),
-    cnpj:      ex(/CNPJ \/ CPF \/ NIF\s*\n\s*([\d.\/\-]+)/),
-    valor:     ex(/Valor Líquido da NFS-e\s*\n\s*(R\$\s*[\d.,]+)/),
-    descricao: ex(/Descrição do Serviço\s*\n\s*([^\n]{5,})/),
-    chave:     ex(/Chave de Acesso da NFS-e\s*\n\s*([A-Za-z0-9]+)/),
-    url
-  };
 }
 
 function showPreview(d) {
   document.getElementById('previewBody').innerHTML = [
-    { name: 'Nº NFS-e',  val: d.numero,    cls: 'hi' },
-    { name: 'Data',       val: d.data_em,   cls: '' },
-    { name: 'Prestador',  val: d.prestador, cls: '' },
-    { name: 'CNPJ',       val: d.cnpj,      cls: 'mono' },
-    { name: 'Valor',      val: d.valor,     cls: 'hi' },
-    { name: 'Serviço',    val: d.descricao, cls: '' },
-    { name: 'Chave',      val: d.chave,     cls: 'mono' },
+    { name: 'Nº NFe',      val: d.numero,    cls: 'hi' },
+    { name: 'Mês/Ano',     val: d.data_em,   cls: '' },
+    { name: 'CNPJ',        val: d.cnpj,      cls: 'mono' },
+    { name: 'Chave',       val: d.chave,     cls: 'mono' },
   ].map(f => `<div class="field-row"><div class="field-name">${f.name}</div><div class="field-val ${f.cls}">${f.val}</div></div>`).join('');
 
   document.getElementById('previewCard').classList.add('show');
@@ -362,8 +350,8 @@ function renderHistory() {
     <div class="history-item">
       <div class="history-icon">🧾</div>
       <div class="history-info">
-        <div class="history-name">${h.prestador}</div>
-        <div class="history-meta">Nº ${h.numero} · ${h.valor}</div>
+        <div class="history-name">Final: ${h.chave.slice(-6)}</div>
+        <div class="history-meta">Nº ${h.numero}</div>
       </div>
       <div class="history-status">Enviado</div>
     </div>`).join('');
@@ -371,7 +359,7 @@ function renderHistory() {
 
 function setStatus(msg, type) {
   const el = document.getElementById('statusBar');
-  const loading = type === 'info' && (msg.includes('Buscando') || msg.includes('Gravando') || msg.includes('Autenticando'));
+  const loading = type === 'info' && (msg.includes('Processando') || msg.includes('Gravando') || msg.includes('Autenticando'));
   el.className = 'status-bar' + (type ? ' ' + type : '');
   el.innerHTML = (loading ? '<div class="spinner"></div>' : '') + `<span>${msg}</span>`;
 }
