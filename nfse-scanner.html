@@ -18,7 +18,7 @@
   <div id="status">Clique em Iniciar</div>
   
   <div id="result">
-    <div id="data-display" style="margin-bottom:20px; font-size: 12px; text-align: left;"></div>
+    <div id="data-display" style="margin-bottom:20px; font-size: 14px; text-align: left;"></div>
     <button onclick="enviar()">ENVIAR PARA PLANILHA</button>
   </div>
 
@@ -29,53 +29,60 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAfwg-jei3GEW34UAMV
 let notaDados = {};
 
 async function init() {
-  if (!('BarcodeDetector' in window)) { alert('Use Chrome ou Edge'); return; }
+  if (!('BarcodeDetector' in window)) { alert('Use Chrome ou Edge atualizado'); return; }
   const det = new BarcodeDetector({ formats: ['qr_code'] });
   document.getElementById('btn-init').style.display = 'none';
   document.getElementById('status').textContent = '📷 Abrindo câmera...';
 
-  const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-  const v = document.getElementById('v');
-  v.srcObject = stream;
-  await v.play();
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+    const v = document.getElementById('v');
+    v.srcObject = stream;
+    await v.play();
 
-  async function scan() {
-    const codes = await det.detect(v);
-    if (codes.length > 0) {
-      document.getElementById('status').textContent = '✅ QR LIDO!';
-      v.style.display = 'none';
-      processar(codes[0].rawValue);
-    } else { setTimeout(scan, 200); }
-  }
-  scan();
+    async function scan() {
+      const codes = await det.detect(v);
+      if (codes.length > 0) {
+        document.getElementById('status').textContent = '✅ QR LIDO!';
+        v.style.display = 'none';
+        processar(codes[0].rawValue);
+      } else { setTimeout(scan, 200); }
+    }
+    scan();
+  } catch(e) { document.getElementById('status').textContent = '❌ Erro Câmera: ' + e.message; }
 }
 
 async function processar(url) {
-  document.getElementById('status').textContent = '🔍 Lendo nota...';
+  document.getElementById('status').textContent = '🔍 Buscando dados...';
   try {
-    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
-    const html = await res.text();
+    // Proxy robusto para leitura externa
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+    const res = await fetch(proxyUrl);
+    const data = await res.json();
+    const html = data.contents;
     
-    // FILTRO DINÂMICO
-    // Se ele não achar o formato esperado, ele vai mostrar o que encontrou no 'data-display'
-    const nMatch = html.match(/(?:Número|Nº|Nota|NFS-e)[\s:]+(\d{5,15})/i);
-    const vMatch = html.match(/(?:Valor|Total|Líquido)[\s:]*(R\$\s*[\d.,]+)/i);
+    // Filtros de extração melhorados
+    const nMatch = html.match(/(?:Número|Nº|Nota|NFS-e)[^0-9]+(\d{5,15})/i);
+    const vMatch = html.match(/(?:Valor|Total|Líquido)[^0-9]*(R\$\s*[\d.,]+)/i);
 
     notaDados = {
-      n: nMatch ? nMatch[1] : "NÃO ACHEI NOTA",
-      v: vMatch ? vMatch[1] : "NÃO ACHEI VALOR"
+      n: nMatch ? nMatch[1] : "NÃO ACHEI",
+      v: vMatch ? vMatch[1] : "NÃO ACHEI"
     };
 
     document.getElementById('data-display').innerHTML = `
       NOTA: ${notaDados.n}<br>
-      VALOR: ${notaDados.v}<br><br>
-      TEXTO LIDO (Debug): ${html.substring(0, 100).replace(/<[^>]*>/g, '')}...
+      VALOR: ${notaDados.v}
     `;
     document.getElementById('result').style.display = 'block';
-  } catch(e) { document.getElementById('status').textContent = '❌ Erro: ' + e.message; }
+    document.getElementById('status').textContent = 'Finalizado.';
+  } catch(e) { 
+    document.getElementById('status').textContent = '❌ Erro no Proxy: ' + e.message; 
+  }
 }
 
 async function enviar() {
+  document.getElementById('status').textContent = '🚀 Enviando...';
   const url = `${SCRIPT_URL}?n=${encodeURIComponent(notaDados.n)}&v=${encodeURIComponent(notaDados.v)}`;
   await fetch(url, { method: 'GET', mode: 'no-cors' });
   alert("✅ Sucesso!");
