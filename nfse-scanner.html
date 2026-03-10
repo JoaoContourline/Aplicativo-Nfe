@@ -3,166 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>NFe Scanner</title>
+<title>NFS-e Scanner V4</title>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.9.0/jsrsasign-all-min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap');
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #09090b; --surface: #18181b; --surface2: #27272a;
-    --border: #3f3f46; --text: #fafafa; --muted: #a1a1aa; --faint: #52525b;
-    --green: #22c55e; --green-dim: #166534; --green-bg: #052e16;
-    --blue: #3b82f6; --red: #ef4444; --red-bg: #450a0a;
-  }
-  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Geist', sans-serif; overflow-x: hidden; }
-  .app { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; padding-bottom: 40px; }
-
-  .topbar {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 16px 20px 12px; border-bottom: 1px solid var(--border);
-    position: sticky; top: 0; background: var(--bg); z-index: 10;
-  }
-  .logo { display: flex; align-items: center; gap: 10px; }
-  .logo-mark { width: 32px; height: 32px; background: var(--green); display: grid; place-items: center; border-radius: 6px; }
-  .logo-text { font-family: 'Geist Mono', monospace; font-size: 15px; font-weight: 700; }
-  .logo-sub { font-size: 11px; color: var(--muted); }
-  .sheets-badge { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; }
-  .sheets-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
-
-  .cam-section { padding: 16px 20px 0; }
-
-  /* Estilo do html5-qrcode */
-  #qr-reader { width: 100% !important; border: 1px solid var(--border) !important; border-radius: 12px !important; overflow: hidden !important; background: #000 !important; }
-  #qr-reader__scan_region { background: #000 !important; }
-  #qr-reader__scan_region video { border-radius: 0 !important; }
-  #qr-reader__dashboard { padding: 12px !important; background: var(--surface) !important; }
-  #qr-reader__dashboard_section_csr button {
-    background: var(--green) !important; color: #000 !important;
-    border: none !important; border-radius: 8px !important;
-    padding: 11px 20px !important; font-size: 14px !important;
-    font-weight: 700 !important; cursor: pointer !important;
-    width: 100% !important; font-family: 'Geist', sans-serif !important;
-  }
-  #qr-reader__camera_selection {
-    background: var(--surface2) !important; color: var(--text) !important;
-    border: 1px solid var(--border) !important; border-radius: 6px !important;
-    padding: 8px 10px !important; width: 100% !important;
-    margin-bottom: 8px !important; font-size: 13px !important;
-    font-family: 'Geist', sans-serif !important;
-  }
-  #qr-reader__status_span { color: var(--muted) !important; font-size: 11px !important; }
-  #qr-reader__header_message { display: none !important; }
-  #qr-reader__dashboard_section_fsr { display: none !important; }
-
-  .status-bar {
-    margin: 12px 20px 0; padding: 10px 14px; border-radius: 8px;
-    border: 1px solid var(--border); background: var(--surface);
-    font-size: 12px; color: var(--muted);
-    display: flex; align-items: center; gap: 8px;
-    font-family: 'Geist Mono', monospace;
-  }
-  .status-bar.ok    { border-color: var(--green-dim); background: var(--green-bg); color: var(--green); }
-  .status-bar.error { border-color: #7f1d1d; background: var(--red-bg); color: var(--red); }
-  .status-bar.info  { border-color: #1e3a5f; background: #0f172a; color: var(--blue); }
-
-  .spinner { width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .preview-card { margin: 12px 20px 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; display: none; }
-  .preview-card.show { display: block; }
-  .preview-header { padding: 10px 14px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; justify-content: space-between; }
-  .ok-tag { color: var(--green); }
-  .field-row { display: flex; padding: 10px 14px; border-bottom: 1px solid var(--border); gap: 12px; background: var(--surface); }
-  .field-row:last-child { border-bottom: none; }
-  .field-name { font-size: 11px; color: var(--muted); width: 100px; flex-shrink: 0; font-family: 'Geist Mono', monospace; padding-top: 1px; }
-  .field-val { font-size: 13px; font-weight: 500; color: var(--text); word-break: break-all; line-height: 1.4; flex: 1; }
-  .field-val.mono { font-family: 'Geist Mono', monospace; font-size: 11px; }
-  .field-val.hi { color: var(--green); font-weight: 700; }
-
-  .send-row { padding: 12px 20px 0; display: flex; gap: 10px; }
-  .btn { flex: 1; padding: 13px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: 'Geist', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-  .btn:hover:not(:disabled) { background: var(--surface2); }
-  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
-  .btn.primary { background: var(--green); color: #000; border-color: var(--green); font-weight: 700; flex: 2; }
-  .btn.primary:hover:not(:disabled) { background: #16a34a; }
-  .btn.danger { color: var(--red); border-color: #7f1d1d; }
-
-  .history-section { margin: 20px 20px 0; display: none; }
-  .history-section.show { display: block; }
-  .history-title { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--faint); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
-  .history-list { display: flex; flex-direction: column; gap: 6px; }
-  .history-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
-  .history-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--green-bg); border: 1px solid var(--green-dim); display: grid; place-items: center; flex-shrink: 0; font-size: 13px; }
-  .history-info { flex: 1; overflow: hidden; }
-  .history-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .history-meta { font-size: 11px; color: var(--muted); font-family: 'Geist Mono', monospace; }
-  .history-status { font-size: 10px; padding: 3px 7px; border-radius: 4px; font-weight: 600; background: var(--green-bg); color: var(--green); border: 1px solid var(--green-dim); }
-
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(12px); background: var(--text); color: var(--bg); font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 8px; opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 100; white-space: nowrap; }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  :root { --bg: #09090b; --surface: #18181b; --border: #3f3f46; --text: #fafafa; --green: #22c55e; --red: #ef4444; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; padding: 15px; margin: 0; }
+  #qr-reader { width: 100%; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: #000; }
+  .status { margin: 10px 0; padding: 10px; border-radius: 8px; font-size: 13px; background: var(--surface); border: 1px solid var(--border); color: #a1a1aa; }
+  .preview { background: var(--surface); padding: 15px; border-radius: 10px; border: 1px solid var(--border); margin-top: 15px; display: none; }
+  .btn { width: 100%; padding: 15px; background: var(--green); color: #000; border: none; border-radius: 8px; font-weight: 800; margin-top: 10px; cursor: pointer; }
+  #debug-console { margin-top: 20px; background: #000; color: #4ade80; font-family: monospace; font-size: 10px; padding: 10px; height: 160px; overflow-y: auto; border-radius: 8px; border: 1px solid #333; white-space: pre-wrap; }
 </style>
 </head>
 <body>
-<div class="app">
 
-  <div class="topbar">
-    <div class="logo">
-      <div class="logo-mark">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5">
-          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-          <rect x="3" y="14" width="7" height="7"/><circle cx="17.5" cy="17.5" r="2" fill="#000" stroke="none"/>
-        </svg>
-      </div>
-      <div>
-        <div class="logo-text">NFe Scanner</div>
-        <div class="logo-sub">Contourline</div>
-      </div>
-    </div>
-    <div class="sheets-badge"><div class="sheets-dot"></div>Google Sheets</div>
+  <h3 style="margin-bottom:10px;">Scanner NFS-e</h3>
+  <div id="qr-reader"></div>
+  <div id="status" class="status">Aguardando leitura do QR Code...</div>
+
+  <div class="preview" id="previewCard">
+    <div id="previewBody" style="font-size: 14px; line-height: 1.6;"></div>
+    <button class="btn" id="sendBtn" onclick="sendToSheets()">ENVIAR AO SHEETS</button>
   </div>
 
-  <div class="cam-section">
-    <div id="qr-reader"></div>
-  </div>
-
-  <div class="status-bar" id="statusBar">
-    <span>Clique em "Iniciar câmera" para começar</span>
-  </div>
-
-  <div class="preview-card" id="previewCard">
-    <div class="preview-header">
-      <span>Dados extraídos da Chave</span>
-      <span class="ok-tag">✓ Leitura OK</span>
-    </div>
-    <div id="previewBody"></div>
-  </div>
-
-  <div class="send-row" id="sendRow" style="display:none;">
-    <button class="btn danger" onclick="resetScan()">Cancelar</button>
-    <button class="btn primary" id="sendBtn" onclick="sendToSheets()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 2 11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-      Enviar para Sheets
-    </button>
-  </div>
-
-  <div class="history-section" id="historySection">
-    <div class="history-title">
-      <span>Histórico da sessão</span>
-      <span id="historyCount" style="color:var(--faint);font-size:11px;font-weight:400;"></span>
-    </div>
-    <div class="history-list" id="historyList"></div>
-  </div>
-
-</div>
-<div class="toast" id="toast"></div>
+  <div id="debug-console">--- SISTEMA PRONTO ---</div>
 
 <script>
-const SHEET_ID   = '1330tKi9srogL71KVphJlTYuh-CUFjRX71LBuEZf8CIY';
-const SHEET_NAME = 'NFS-e';
+// CONFIGURAÇÕES FIXAS
+const SHEET_ID = '1330tKi9srogL71KVphJlTYuh-CUFjRX71LBuEZf8CIY';
 const SERVICE_ACCOUNT = {
-  client_email: 'aplicativo-nfe@i-informatics-477817-j5.iam.gserviceaccount.com',
-  private_key: `-----BEGIN PRIVATE KEY-----
+  email: 'aplicativo-nfe@i-informatics-477817-j5.iam.gserviceaccount.com',
+  key: `-----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDDjiZ/DbQ2brYe
 L8CuYRpPiGWKKmwjfYpip/NJBemTGu8HNigwu6IYmnalNnAeTkuudFYajjXyqIn0
 kU+tAPqa0Zvic1naScPUSZkxFRkZ22EkV0xHy0K8v3222YqWk+r1gvG8LVd4P4ak
@@ -192,183 +64,125 @@ Wj1dk4Flx4lUCVlHIV+iEN1EnembUsAQ6TNy2QDfRvvZ9t6X5NQaOuMEB3kAkJUN
 -----END PRIVATE KEY-----`
 };
 
-let currentData = null, sessionHistory = [], html5QrCode = null, active = false;
-
-window.addEventListener('load', () => {
-  html5QrCode = new Html5Qrcode('qr-reader');
-  startScanner();
-});
-
-function startScanner() {
-  if (active) return;
-  html5QrCode.start(
-    { facingMode: 'environment' },
-    {
-      fps: 15,
-      qrbox: (w, h) => {
-        const size = Math.min(w, h) * 0.75;
-        return { width: size, height: size };
-      },
-      aspectRatio: 1.333,
-      experimentalFeatures: { useBarCodeDetectorIfSupported: true }
-    },
-    onQRFound,
-    () => {}
-  ).then(() => {
-    active = true;
-    setStatus('Aponte para o QR code da nota fiscal', 'info');
-  }).catch(err => {
-    setStatus('Erro câmera: ' + err, 'error');
-  });
+function log(msg) {
+  const c = document.getElementById('debug-console');
+  c.innerHTML += `\n> ${msg}`;
+  c.scrollTop = c.scrollHeight;
 }
 
-// NOVA FUNÇÃO: Extrai dados diretos, sem tentar acessar sites externos
-async function onQRFound(text) {
-  if (!active) return;
-  active = false;
-  try { await html5QrCode.stop(); } catch(_) {}
+let currentData = null;
+const html5QrCode = new Html5Qrcode("qr-reader");
 
-  setStatus('QR detectado! Processando link...', 'info');
+// INICIALIZAÇÃO DA CÂMERA
+html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, async (decodedText) => {
+  log("QR Detectado!");
+  document.getElementById('status').innerText = "Processando dados da nota...";
+  try {
+    await html5QrCode.stop();
+    await processNFSe(decodedText);
+  } catch (e) {
+    log("Erro ao parar câmera: " + e.message);
+  }
+}).catch(err => log("Erro Câmera: " + err));
 
-  // Regex para buscar exatamente 44 números em sequência
-  const regex = /\d{44}/;
-  const match = text.match(regex);
+async function processNFSe(url) {
+  try {
+    log("Buscando conteúdo da nota...");
+    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+    const response = await fetch(proxyUrl);
+    const html = await response.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const b = doc.body.innerText;
 
-  if (match) {
-    const chaveCompleta = match[0];
-    
-    // Podemos descobrir algumas coisas só lendo os números da própria chave:
-    const mesAno = chaveCompleta.substring(4, 6) + '/' + chaveCompleta.substring(2, 4);
-    const cnpj = chaveCompleta.substring(6, 20).replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
-    const numNota = chaveCompleta.substring(25, 34).replace(/^0+/, ''); // Remove os zeros à esquerda
-
+    // Extrator de dados (Regex)
     currentData = {
-      numero: numNota || 'N/A',
-      data_em: mesAno,
-      prestador: 'Lido via QR Code', // Como não baixamos o HTML, não temos o nome
-      cnpj: cnpj,
-      valor: '—', // O valor não vai na chave
-      descricao: 'Chave NF-e extraída diretamente',
-      chave: chaveCompleta,
-      url: text
+      numero: b.match(/Número da NFS-e\s*\n\s*(\d+)/)?.[1] || "—",
+      data: b.match(/Data e Hora de Emissão da NFS-e\s*\n\s*([\d\/]+)/)?.[1] || "—",
+      prestador: b.match(/Nome \/ Nome Empresarial\s*\n\s*([^\n]+)/)?.[1] || "—",
+      valor: b.match(/Valor Líquido da NFS-e\s*\n\s*(R\$\s*[\d.,]+)/)?.[1] || "—",
+      chave: b.match(/Chave de Acesso da NFS-e\s*\n\s*([A-Za-z0-9]+)/)?.[1] || "—"
     };
 
-    showPreview(currentData);
-    setStatus('Confirme os dados e envie para o Sheets', 'ok');
-  } else {
-    setStatus('Erro: O QR Code não contém uma chave de 44 dígitos.', 'error');
-    // Espera 3 segundos para o usuário ler a mensagem de erro antes de religar a câmera
-    setTimeout(() => {
-      startScanner();
-    }, 3000);
+    if(currentData.numero === "—") {
+        log("Aviso: Alguns dados não foram encontrados no texto.");
+    }
+
+    document.getElementById('previewBody').innerHTML = `
+      <b>Prestador:</b> ${currentData.prestador}<br>
+      <b>Nº Nota:</b> ${currentData.numero}<br>
+      <b>Valor:</b> <span style="color:#22c55e">${currentData.valor}</span>
+    `;
+    document.getElementById('previewCard').style.display = 'block';
+    document.getElementById('status').innerText = "Leitura concluída!";
+    log("Dados prontos para envio.");
+  } catch (e) {
+    log("Erro no processamento: " + e.message);
+    document.getElementById('status').innerText = "Erro ao ler dados da URL.";
   }
-}
-
-function showPreview(d) {
-  document.getElementById('previewBody').innerHTML = [
-    { name: 'Nº NFe',      val: d.numero,    cls: 'hi' },
-    { name: 'Mês/Ano',     val: d.data_em,   cls: '' },
-    { name: 'CNPJ',        val: d.cnpj,      cls: 'mono' },
-    { name: 'Chave',       val: d.chave,     cls: 'mono' },
-  ].map(f => `<div class="field-row"><div class="field-name">${f.name}</div><div class="field-val ${f.cls}">${f.val}</div></div>`).join('');
-
-  document.getElementById('previewCard').classList.add('show');
-  document.getElementById('sendRow').style.display = 'flex';
-}
-
-function resetScan() {
-  currentData = null;
-  document.getElementById('previewCard').classList.remove('show');
-  document.getElementById('sendRow').style.display = 'none';
-  startScanner();
 }
 
 async function sendToSheets() {
   const btn = document.getElementById('sendBtn');
   btn.disabled = true;
-  btn.innerHTML = '<div class="spinner"></div> Enviando...';
-  setStatus('Autenticando...', 'info');
+  btn.innerText = "AUTENTICANDO...";
+  log("Iniciando assinatura Google JWT...");
+
   try {
-    const token = await getAccessToken();
-    setStatus('Gravando na planilha...', 'info');
-    await appendRow(token, currentData);
-    setStatus('✓ Nota salva no Google Sheets!', 'ok');
-    showToast('✓ Enviado!');
-    sessionHistory.unshift(currentData);
-    renderHistory();
-    document.getElementById('previewCard').classList.remove('show');
-    document.getElementById('sendRow').style.display = 'none';
-    currentData = null;
-    setTimeout(startScanner, 1500);
-  } catch(e) {
-    setStatus('Erro: ' + e.message, 'error');
-    showToast('Falha ao enviar');
+    const now = Math.floor(Date.now() / 1000);
+    const sHeader = JSON.stringify({alg: "RS256", typ: "JWT"});
+    const sPayload = JSON.stringify({
+      iss: SERVICE_ACCOUNT.email,
+      scope: "https://www.googleapis.com/auth/spreadsheets",
+      aud: "https://oauth2.googleapis.com/token",
+      iat: now - 30, // Margem para relógio dessincronizado
+      exp: now + 3600
+    });
+
+    // Assinatura com a biblioteca jsrsasign
+    const sJWT = KJUR.jws.JWS.sign(null, sHeader, sPayload, SERVICE_ACCOUNT.key);
+    
+    log("JWT assinado. Buscando Token...");
+    const r = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${sJWT}`
+    });
+
+    const res = await r.json();
+    if(res.error) {
+        log("ERRO GOOGLE: " + res.error_description);
+        btn.disabled = false;
+        btn.innerText = "TENTAR NOVAMENTE";
+        return;
+    }
+
+    log("Token OK! Gravando na planilha...");
+    const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/NFS-e!A:H:append?valueInputOption=USER_ENTERED`;
+    const appendR = await fetch(sheetUrl, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + res.access_token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        values: [[
+          currentData.numero, currentData.data, currentData.prestador, 
+          "", currentData.valor, "", currentData.chave, new Date().toLocaleString()
+        ]]
+      })
+    });
+
+    if(appendR.ok) {
+        log("SUCESSO: Nota salva!");
+        alert("✅ Gravado com sucesso na planilha!");
+        location.reload();
+    } else {
+        const errData = await appendR.json();
+        log("Erro Sheets: " + errData.error.message);
+    }
+
+  } catch (e) {
+    log("Erro crítico: " + e.message);
   }
   btn.disabled = false;
-  btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 2 11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar para Sheets`;
-}
-
-async function getAccessToken() {
-  const now = Math.floor(Date.now() / 1000);
-  const jwt = KJUR.jws.JWS.sign('RS256',
-    JSON.stringify({ alg: 'RS256', typ: 'JWT' }),
-    JSON.stringify({ iss: SERVICE_ACCOUNT.client_email, scope: 'https://www.googleapis.com/auth/spreadsheets', aud: 'https://oauth2.googleapis.com/token', iat: now, exp: now + 3600 }),
-    SERVICE_ACCOUNT.private_key
-  );
-  const r = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`
-  });
-  const d = await r.json();
-  if (!d.access_token) throw new Error(d.error_description || 'Auth falhou');
-  return d.access_token;
-}
-
-async function appendRow(token, d) {
-  // Cria cabeçalho se necessário
-  const check = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME+'!A1')}`, { headers: { Authorization: 'Bearer ' + token } });
-  const cd = await check.json();
-  if (!cd.values || !cd.values.length) {
-    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME+'!A1')}?valueInputOption=USER_ENTERED`, {
-      method: 'PUT', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ values: [['Nº NFS-e','Data Emissão','Prestador','CNPJ','Valor','Descrição','Chave de Acesso','Registrado em']] })
-    });
-  }
-  const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME+'!A:H')}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`, {
-    method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ values: [[d.numero, d.data_em, d.prestador, d.cnpj, d.valor, d.descricao, d.chave, new Date().toLocaleString('pt-BR')]] })
-  });
-  if (!r.ok) { const e = await r.json(); throw new Error(e.error?.message || 'Falha ao gravar'); }
-}
-
-function renderHistory() {
-  if (!sessionHistory.length) return;
-  document.getElementById('historySection').classList.add('show');
-  document.getElementById('historyCount').textContent = sessionHistory.length + ' nota' + (sessionHistory.length > 1 ? 's' : '');
-  document.getElementById('historyList').innerHTML = sessionHistory.map(h => `
-    <div class="history-item">
-      <div class="history-icon">🧾</div>
-      <div class="history-info">
-        <div class="history-name">Final: ${h.chave.slice(-6)}</div>
-        <div class="history-meta">Nº ${h.numero}</div>
-      </div>
-      <div class="history-status">Enviado</div>
-    </div>`).join('');
-}
-
-function setStatus(msg, type) {
-  const el = document.getElementById('statusBar');
-  const loading = type === 'info' && (msg.includes('Processando') || msg.includes('Gravando') || msg.includes('Autenticando'));
-  el.className = 'status-bar' + (type ? ' ' + type : '');
-  el.innerHTML = (loading ? '<div class="spinner"></div>' : '') + `<span>${msg}</span>`;
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  btn.innerText = "ENVIAR AO SHEETS";
 }
 </script>
 </body>
