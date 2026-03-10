@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NFS-e Minimal Scanner</title>
+<title>NFS-e Scanner Pro</title>
 <style>
   body { margin:0; background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; font-family:monospace; color:#fff; gap:16px; padding: 20px; }
   video { width:100%; max-width:480px; height:auto; border:3px solid #333; }
@@ -18,7 +18,7 @@
   <div id="status">Clique em Iniciar</div>
   
   <div id="result">
-    <div id="data-display" style="margin-bottom:20px;"></div>
+    <div id="data-display" style="margin-bottom:20px; font-size: 12px; text-align: left;"></div>
     <button onclick="enviar()">ENVIAR PARA PLANILHA</button>
   </div>
 
@@ -43,32 +43,39 @@ async function init() {
     const codes = await det.detect(v);
     if (codes.length > 0) {
       document.getElementById('status').textContent = '✅ QR LIDO!';
-      document.getElementById('status').style.background = '#060';
       v.style.display = 'none';
       processar(codes[0].rawValue);
-    } else {
-      setTimeout(scan, 200);
-    }
+    } else { setTimeout(scan, 200); }
   }
   scan();
 }
 
 async function processar(url) {
-  document.getElementById('status').textContent = '🔍 Buscando dados da nota...';
+  document.getElementById('status').textContent = '🔍 Lendo nota...';
   try {
     const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
     const html = await res.text();
+    
+    // FILTRO DINÂMICO
+    // Se ele não achar o formato esperado, ele vai mostrar o que encontrou no 'data-display'
+    const nMatch = html.match(/(?:Número|Nº|Nota|NFS-e)[\s:]+(\d{5,15})/i);
+    const vMatch = html.match(/(?:Valor|Total|Líquido)[\s:]*(R\$\s*[\d.,]+)/i);
+
     notaDados = {
-      n: html.match(/(?:Número da NFS-e|Número)\s*[:\s]*(\d+)/i)?.[1] || "—",
-      v: html.match(/(?:Valor Líquido|Valor)\s*[:\s]*(R\$\s*[\d.,]+)/i)?.[1] || "—"
+      n: nMatch ? nMatch[1] : "NÃO ACHEI NOTA",
+      v: vMatch ? vMatch[1] : "NÃO ACHEI VALOR"
     };
-    document.getElementById('data-display').innerHTML = `NOTA: ${notaDados.n}<br>VALOR: ${notaDados.v}`;
+
+    document.getElementById('data-display').innerHTML = `
+      NOTA: ${notaDados.n}<br>
+      VALOR: ${notaDados.v}<br><br>
+      TEXTO LIDO (Debug): ${html.substring(0, 100).replace(/<[^>]*>/g, '')}...
+    `;
     document.getElementById('result').style.display = 'block';
   } catch(e) { document.getElementById('status').textContent = '❌ Erro: ' + e.message; }
 }
 
 async function enviar() {
-  document.getElementById('status').textContent = '🚀 Enviando...';
   const url = `${SCRIPT_URL}?n=${encodeURIComponent(notaDados.n)}&v=${encodeURIComponent(notaDados.v)}`;
   await fetch(url, { method: 'GET', mode: 'no-cors' });
   alert("✅ Sucesso!");
