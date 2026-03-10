@@ -3,234 +3,162 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>NFS-e Scanner</title>
+<title>NFS-e Scanner Debug</title>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.9.0/jsrsasign-all-min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap');
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #09090b; --surface: #18181b; --surface2: #27272a;
-    --border: #3f3f46; --text: #fafafa; --muted: #a1a1aa; --faint: #52525b;
-    --green: #22c55e; --green-dim: #166534; --green-bg: #052e16;
-    --blue: #3b82f6; --red: #ef4444; --red-bg: #450a0a;
+  @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;700&family=Geist:wght@400;700&display=swap');
+  :root { --bg: #09090b; --surface: #18181b; --border: #3f3f46; --text: #fafafa; --green: #22c55e; --red: #ef4444; }
+  body { background: var(--bg); color: var(--text); font-family: 'Geist', sans-serif; padding: 15px; margin: 0; }
+  #qr-reader { width: 100%; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: #000; }
+  .status { margin: 10px 0; padding: 10px; border-radius: 8px; font-size: 13px; background: var(--surface); border: 1px solid var(--border); }
+  .preview { background: var(--surface); padding: 15px; border-radius: 10px; border: 1px solid var(--border); margin-top: 15px; display: none; }
+  .btn { width: 100%; padding: 15px; background: var(--green); color: #000; border: none; border-radius: 8px; font-weight: 800; margin-top: 10px; cursor: pointer; }
+  
+  /* CONSOLE DE DEBUG NA TELA */
+  #debug-console { 
+    margin-top: 20px; background: #000; color: #4ade80; font-family: 'Geist Mono', monospace; 
+    font-size: 10px; padding: 10px; border: 1px solid var(--border); height: 180px; 
+    overflow-y: auto; white-space: pre-wrap; border-radius: 8px;
   }
-  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Geist', sans-serif; overflow-x: hidden; }
-  .app { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; padding-bottom: 40px; }
-
-  .topbar {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 16px 20px 12px; border-bottom: 1px solid var(--border);
-    position: sticky; top: 0; background: var(--bg); z-index: 10;
-  }
-  .logo { display: flex; align-items: center; gap: 10px; }
-  .logo-mark { width: 32px; height: 32px; background: var(--green); display: grid; place-items: center; border-radius: 6px; }
-  .logo-text { font-family: 'Geist Mono', monospace; font-size: 15px; font-weight: 700; }
-  .logo-sub { font-size: 11px; color: var(--muted); }
-  .sheets-badge { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; }
-  .sheets-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
-
-  .cam-section { padding: 16px 20px 0; }
-  #qr-reader { width: 100% !important; border: 1px solid var(--border) !important; border-radius: 12px !important; overflow: hidden !important; background: #000 !important; }
-  #qr-reader__scan_region { background: #000 !important; }
-  #qr-reader__dashboard { padding: 12px !important; background: var(--surface) !important; }
-  #qr-reader__dashboard_section_csr button {
-    background: var(--green) !important; color: #000 !important;
-    border: none !important; border-radius: 8px !important;
-    padding: 11px 20px !important; font-size: 14px !important;
-    font-weight: 700 !important; cursor: pointer !important;
-    width: 100% !important; font-family: 'Geist', sans-serif !important;
-  }
-  #qr-reader__camera_selection {
-    background: var(--surface2) !important; color: var(--text) !important;
-    border: 1px solid var(--border) !important; border-radius: 6px !important;
-    padding: 8px 10px !important; width: 100% !important;
-    margin-bottom: 8px !important; font-size: 13px !important;
-  }
-
-  .status-bar {
-    margin: 12px 20px 0; padding: 10px 14px; border-radius: 8px;
-    border: 1px solid var(--border); background: var(--surface);
-    font-size: 12px; color: var(--muted);
-    display: flex; align-items: center; gap: 8px;
-    font-family: 'Geist Mono', monospace;
-  }
-  .status-bar.ok { border-color: var(--green-dim); background: var(--green-bg); color: var(--green); }
-  .status-bar.error { border-color: #7f1d1d; background: var(--red-bg); color: var(--red); }
-  .status-bar.info { border-color: #1e3a5f; background: #0f172a; color: var(--blue); }
-
-  .spinner { width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .preview-card { margin: 12px 20px 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; display: none; }
-  .preview-card.show { display: block; }
-  .preview-header { padding: 10px 14px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; justify-content: space-between; }
-  .field-row { display: flex; padding: 10px 14px; border-bottom: 1px solid var(--border); gap: 12px; background: var(--surface); }
-  .field-name { font-size: 11px; color: var(--muted); width: 100px; flex-shrink: 0; font-family: 'Geist Mono', monospace; }
-  .field-val { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; word-break: break-all; }
-  .field-val.hi { color: var(--green); font-weight: 700; }
-
-  .send-row { padding: 12px 20px 0; display: flex; gap: 10px; }
-  .btn { flex: 1; padding: 13px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: 'Geist', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-  .btn.primary { background: var(--green); color: #000; border-color: var(--green); font-weight: 700; flex: 2; }
-  .btn.danger { color: var(--red); border-color: #7f1d1d; }
-  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
-
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 8px; opacity: 0; transition: 0.25s; z-index: 100; }
-  .toast.show { opacity: 1; }
+  .log-err { color: #f87171; }
+  .log-warn { color: #fbbf24; }
 </style>
 </head>
 <body>
-<div class="app">
-  <div class="topbar">
-    <div class="logo">
-      <div class="logo-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><circle cx="17.5" cy="17.5" r="2" fill="#000" stroke="none"/></svg></div>
-      <div><div class="logo-text">NFS-e Scanner</div><div class="logo-sub">Contourline</div></div>
-    </div>
-    <div class="sheets-badge"><div class="sheets-dot"></div>Google Sheets</div>
+
+  <h3 style="margin-bottom:15px;">Scanner NFS-e (Debug Mode)</h3>
+  <div id="qr-reader"></div>
+  <div id="status" class="status">Aguardando câmera...</div>
+
+  <div class="preview" id="previewCard">
+    <div id="previewBody" style="font-size: 14px; line-height: 1.6;"></div>
+    <button class="btn" id="sendBtn" onclick="sendToSheets()">ENVIAR AO GOOGLE SHEETS</button>
   </div>
 
-  <div class="cam-section"><div id="qr-reader"></div></div>
-  <div class="status-bar" id="statusBar"><span>Inicie a câmera para escanear</span></div>
-
-  <div class="preview-card" id="previewCard">
-    <div class="preview-header"><span>Dados extraídos</span><span style="color:var(--green)">✓ LEITURA OK</span></div>
-    <div id="previewBody"></div>
-  </div>
-
-  <div class="send-row" id="sendRow" style="display:none;">
-    <button class="btn danger" onclick="resetScan()">Cancelar</button>
-    <button class="btn primary" id="sendBtn" onclick="sendToSheets()">Enviar para Sheets</button>
-  </div>
-</div>
-<div class="toast" id="toast"></div>
+  <div id="debug-console">--- LOGS DO SISTEMA ---</div>
 
 <script>
-const SHEET_ID   = '1330tKi9srogL71KVphJlTYuh-CUFjRX71LBuEZf8CIY';
-const SHEET_NAME = 'NFS-e';
-
-// AQUI ESTÁ SUA CHAVE PRIVADA INSERIDA
+// CONFIGURAÇÕES
+const SHEET_ID = '1330tKi9srogL71KVphJlTYuh-CUFjRX71LBuEZf8CIY';
 const SERVICE_ACCOUNT = {
   client_email: 'aplicativo-nfe@i-informatics-477817-j5.iam.gserviceaccount.com',
-  private_key: "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDDjiZ/DbQ2brYe\nL8CuYRpPiGWKKmwjfYpip/NJBemTGu8HNigwu6IYmnalNnAeTkuudFYajjXyqIn0\nkU+tAPqa0Zvic1naScPUSZkxFRkZ22EkV0xHy0K8v3222YqWk+r1gvG8LVd4P4ak\n4l0AA6P3sfme+5mAHL3ival3AjbJS2pd5NMh+kIbfBBJgyqq7cFNiqCrICscmSZV\nwnzcuulbOU4odTyTZGp7Drt5K0zEND8vkM7aeMxqnfev+uWHsXlBP8bYtVvaTLCb\ns3s4V0fWqcfyOtMMCT22SBzuxmDVvoJTsm+dfDl02xqVVSMcX1udQlykIH8z8Q2a\nrLAd/tmbAgMBAAECggEAQYIi/zjV/84CkAYrI78/kxj7+tbPNuxdKUNdyj6Cylah\nb+cCe6C/YkKMMDgWQvCzhZNPLMIq7EjtPdJXwHqteKNy9t7xYKCJS1oESV7p87F7\nzzK3SO2cQ6JaOKCTPnH6qZfd5s3BmXSeZCm4QcL2cIlcN5fNCg+WxJgIZueE9tUI\ncod/SaZ7HVeIQq4KHZ1B1QGRDzKcGP38On4feHvO+sDOyeS8uqndgCy4M0cJFvzw\nW5hA6PstVhyH3h2qwmM/qINJP2CYj6Y5jLAwV9pivVUNTDRUS/CXuJqv07bl+noG\nOAmu+dn4owCU0wTPtUa/rLtAU1V1Y5vvjmnfjlFA0QKBgQDt6Un8nrvU5R3H8hZR\nJeAzzKnyhFfSn64D/SxUuJ2mXpLtGSAqvMqNcCfI2HTG8EKZlC6zNf/rxkWt6oIe\nufhjq9ihEPO5jLiiVx78BHIn/fU0KJ47y2Uu4hzt20AgtvxScXjYns3tn7x0VG81\nHIxhfgYMXYuoIY+z1tJsZxzPnQKBgQDSbHFl1UqjXe/0CCbmNe4xGcHNRtp/fHN7\nDi/YiaobPZRVag71QMzXoaxKMzREmPCyxwK3mim+dgGyGqutW/Xt9pKTMm5CqKO8\ns7XDvnxzXTJ7kLAyx8dM93MISbcQ4MsWdmktWppltT+U1kbMdkTGWrfJ3fyuqqF+\nlep5Kj60lwKBgBf5Ridap3rQi6u2TWFn+6u8l/OEOoVS6eok/O6cm+ZD6XJS8dbc\np1yRTLEEft/9Hfjz4bDVZDCSDjt0QiBuhQUmL/IrDyRHdeOF++1RVV+KS8cxwKAt\n4shSqK+fRFsHlW2JWbAacI3dZtQiHgKwGcVJObrNQmFy4FQy9YlO6qxRAoGAALC4\nYoQjnYuWWO+Z6RFuOZ0DBMBhwR9QZavzPjudYj9+eBVD/Uv8IAz4urmWR09VItEC\nUkXgMy7B7Kqnu4bctK4lZvQ4ZmGVP+46/2xljh9VJhCgc1oybi81omZTgmuqXuV+\njNaKQSEqFzvouYz9xsTPa4sd5BjNNNQbE9CuqfsCgYEA29uURNvbIqhw0irsSmpg\nWj1dk4Flx4lUCVlHIV+iEN1EnembUsAQ6TNy2QDfRvvZ9t6X5NQaOuMEB3kAkJUN\n3J2bOXUtPVAxL1B1OzMrlh6Z1egZbt99lXwp776C2QlzI7wBm8gGL1FVDYgURYgW\n/I2KhSM8nDFCQCxHzEmBOac=\n-----END PRIVATE KEY-----\n"
+  private_key: "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDDjiZ/DbQ2brYe\nL8CuYRpPiGWKKmwjfYpip/NJBemTGu8HNigwu6IYmnalNnAeTkuudFYajjXyqIn0\nkU+tAPqa0Zvic1naScPUSZkxFRkZ22EkV0xHy0K8v3222YqWk+r1gvG8LVd4P4ak\n4l0AA6P3sfme+5mAHL3ival3AjbJS2pd5NMh+kIbfBBJgyqq7cFNiqCrICscmSZV\nwnzcuulbOU4odTyTZGp7Drt5K0zEND8vkM7aeMxqnfev+uWHsXlBP8bYtVvaTLCb\ns3s4V0fWqcfyOtMMCT22SBzuxmDVvoJTsm+dfDl02xqVVSMcX1udQlykIH8z8Q2a\nrLAd/tmbAgMBAAECggEAQYIi/zjV/84CkAYrI78/kxj7+tbPNuxdKUNdyj6Cylah\nb+cCe6C/YkKMMDgWQvCzhZNPLMIq7EjtPdJXwHqteKNy9t7xYKCJS1oESV7p87F7\nzzK3SO2cQ6JaOKCTPnH6qZfd5s3BmXSeZCm4QcL2cIlcN5fNCg+WxJgIZueE9tUI\ncod/SaZ7HVeIQq4KHZ1B1QGRDzKcGP38On4feHvO+sDOyeS8uqndgCy4M0cJFvzw\nW5hA6PstVhyH3h2qwmM/qINJP2CYj6Y5jLAwV9pivVUNTDRUS/CXuJqv07bl+noG\nOAmu+dn4owCU0wTPtUa/rLtAU1V1Y5vvjmnfjlFA0QKBgQDt6Un8nrvU5R3H8hZR\nJeAzzKnyhFfSn64D/SxUuJ2mXpLtGSAqvMqNcCfI2HTG8EKZlC6zNf/rxkWt6oIe\nufhjq9ihEPO5jLiiVx78BHIn/fU0KJ47y2Uu4hzt20AgtvxScXjYns3tn7x0VG81\nHIxhfgYMXYuoIY+z1tJsZxzPnQKBgQDSbHFl1UqjXe/0CCbmNe4xGcHNRtp/fHN7\ Di/YiaobPZRVag71QMzXoaxKMzREmPCyxwK3mim+dgGyGqutW/Xt9pKTMm5CqKO8\ns7XDvnxzXTJ7kLAyx8dM93MISbcQ4MsWdmktWppltT+U1kbMdkTGWrfJ3fyuqqF+\nlep5Kj60lwKBgBf5Ridap3rQi6u2TWFn+6u8l/OEOoVS6eok/O6cm+ZD6XJS8dbc\np1yRTLEEft/9Hfjz4bDVZDCSDjt0QiBuhQUmL/IrDyRHdeOF++1RVV+KS8cxwKAt\n4shSqK+fRFsHlW2JWbAacI3dZtQiHgKwGcVJObrNQmFy4FQy9YlO6qxRAoGAALC4\ YoQjnYuWWO+Z6RFuOZ0DBMBhwR9QZavzPjudYj9+eBVD/Uv8IAz4urmWR09VItEC\nUkXgMy7B7Kqnu4bctK4lZvQ4ZmGVP+46/2xljh9VJhCgc1oybi81omZTgmuqXuV+\njNaKQSEqFzvouYz9xsTPa4sd5BjNNNQbE9CuqfsCgYEA29uURNvbIqhw0irsSmpg\nWj1dk4Flx4lUCVlHIV+iEN1EnembUsAQ6TNy2QDfRvvZ9t6X5NQaOuMEB3kAkJUN\n3J2bOXUtPVAxL1B1OzMrlh6Z1egZbt99lXwp776C2QlzI7wBm8gGL1FVDYgURYgW\n/I2KhSM8nDFCQCxHzEmBOac=\n-----END PRIVATE KEY-----\n"
 };
 
-let currentData = null, html5QrCode = null, active = false;
-
-window.addEventListener('load', () => {
-  html5QrCode = new Html5Qrcode('qr-reader');
-  startScanner();
-});
-
-function startScanner() {
-  html5QrCode.start({ facingMode: 'environment' }, { fps: 15, qrbox: 250 }, onQRFound).then(() => { active = true; setStatus('Aponte para o QR Code', 'info'); });
+function log(msg, type = '') {
+  const consoleEl = document.getElementById('debug-console');
+  const timestamp = new Date().toLocaleTimeString();
+  const colorClass = type ? `class="log-${type}"` : '';
+  consoleEl.innerHTML += `\n<span ${colorClass}>[${timestamp}] ${msg}</span>`;
+  consoleEl.scrollTop = consoleEl.scrollHeight;
 }
 
-async function onQRFound(text) {
-  if (!active) return;
-  active = false;
-  try { await html5QrCode.stop(); } catch(e) {}
-  setStatus('Processando nota...', 'info');
+let currentData = null;
+const html5QrCode = new Html5Qrcode("qr-reader");
+
+// Inicia Câmera
+html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, async (text) => {
+  log("QR Code detectado!");
+  await html5QrCode.stop();
+  document.getElementById('status').innerText = "Processando nota...";
+  fetchData(text);
+}).catch(err => log("Erro câmera: " + err, "err"));
+
+async function fetchData(url) {
   try {
-    const data = await fetchNFSe(text);
-    currentData = data;
-    showPreview(data);
-    setStatus('Leitura concluída', 'ok');
-  } catch(e) {
-    setStatus('Erro na leitura: ' + e.message, 'error');
-    startScanner();
+    log("Buscando dados via Proxy...");
+    const r = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+    const html = await r.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const text = doc.body.innerText;
+    
+    currentData = {
+      numero: text.match(/Número da NFS-e\s*\n\s*(\d+)/)?.[1] || "—",
+      data: text.match(/Data e Hora de Emissão da NFS-e\s*\n\s*([\d\/]+)/)?.[1] || "—",
+      prestador: text.match(/Nome \/ Nome Empresarial\s*\n\s*([^\n]+)/)?.[1] || "—",
+      valor: text.match(/Valor Líquido da NFS-e\s*\n\s*(R\$\s*[\d.,]+)/)?.[1] || "—",
+      chave: text.match(/Chave de Acesso da NFS-e\s*\n\s*([A-Za-z0-9]+)/)?.[1] || "—"
+    };
+
+    document.getElementById('previewBody').innerHTML = `
+      <b>Prestador:</b> ${currentData.prestador}<br>
+      <b>Nº Nota:</b> ${currentData.numero} | <b>Valor:</b> ${currentData.valor}
+    `;
+    document.getElementById('previewCard').style.display = 'block';
+    log("Leitura concluída com sucesso.");
+  } catch(e) { 
+    log("Erro ao processar HTML: " + e.message, "err"); 
   }
-}
-
-async function fetchNFSe(url) {
-  const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-  const r = await fetch(proxyUrl);
-  const html = await r.text();
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  const text = doc.body.innerText;
-  const ex = re => { const m = text.match(re); return m ? m[1].trim() : '—'; };
-  return {
-    numero: ex(/Número da NFS-e\s*\n\s*(\d+)/),
-    data_em: ex(/Data e Hora de Emissão da NFS-e\s*\n\s*([\d\/]+ [\d:]+)/),
-    prestador: ex(/Nome \/ Nome Empresarial\s*\n\s*([^\n]+)/),
-    cnpj: ex(/CNPJ \/ CPF \/ NIF\s*\n\s*([\d.\/\-]+)/),
-    valor: ex(/Valor Líquido da NFS-e\s*\n\s*(R\$\s*[\d.,]+)/),
-    descricao: ex(/Descrição do Serviço\s*\n\s*([^\n]{5,})/),
-    chave: ex(/Chave de Acesso da NFS-e\s*\n\s*([A-Za-z0-9]+)/)
-  };
-}
-
-function showPreview(d) {
-  document.getElementById('previewBody').innerHTML = `
-    <div class="field-row"><div class="field-name">Nº NFS-e</div><div class="field-val hi">${d.numero}</div></div>
-    <div class="field-row"><div class="field-name">Data</div><div class="field-val">${d.data_em}</div></div>
-    <div class="field-row"><div class="field-name">Prestador</div><div class="field-val">${d.prestador}</div></div>
-    <div class="field-row"><div class="field-name">CNPJ</div><div class="field-val">${d.cnpj}</div></div>
-    <div class="field-row"><div class="field-name">Valor</div><div class="field-val hi">${d.valor}</div></div>
-    <div class="field-row"><div class="field-name">Chave</div><div class="field-val" style="font-size:10px">${d.chave}</div></div>`;
-  document.getElementById('previewCard').classList.add('show');
-  document.getElementById('sendRow').style.display = 'flex';
-}
-
-function resetScan() {
-  document.getElementById('previewCard').classList.remove('show');
-  document.getElementById('sendRow').style.display = 'none';
-  startScanner();
-}
-
-async function getAccessToken() {
-  const now = Math.floor(Date.now() / 1000);
-  const header = { alg: 'RS256', typ: 'JWT' };
-  const payload = {
-    iss: SERVICE_ACCOUNT.client_email,
-    scope: 'https://www.googleapis.com/auth/spreadsheets',
-    aud: 'https://oauth2.googleapis.com/token',
-    iat: now,
-    exp: now + 3600
-  };
-  const jwt = KJUR.jws.JWS.sign('RS256', JSON.stringify(header), JSON.stringify(payload), SERVICE_ACCOUNT.private_key);
-  const r = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`
-  });
-  const d = await r.json();
-  if (!d.access_token) throw new Error(d.error_description || 'Erro de Autenticação');
-  return d.access_token;
 }
 
 async function sendToSheets() {
   const btn = document.getElementById('sendBtn');
   btn.disabled = true;
-  btn.textContent = 'Enviando...';
+  btn.innerText = "AUTENTICANDO...";
+  log("Gerando Assinatura JWT...");
+
   try {
-    const token = await getAccessToken();
-    const body = { values: [[currentData.numero, currentData.data_em, currentData.prestador, currentData.cnpj, currentData.valor, currentData.descricao, currentData.chave, new Date().toLocaleString()]] };
-    const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}!A:H:append?valueInputOption=USER_ENTERED`, {
-      method: 'POST',
-      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+    const now = Math.floor(Date.now() / 1000);
+    const header = JSON.stringify({ alg: 'RS256', typ: 'JWT' });
+    const payload = JSON.stringify({
+      iss: SERVICE_ACCOUNT.client_email,
+      scope: 'https://www.googleapis.com/auth/spreadsheets',
+      aud: 'https://oauth2.googleapis.com/token',
+      iat: now - 30, // Margem de segurança para o relógio
+      exp: now + 3600
     });
-    if (!r.ok) throw new Error('Erro ao salvar na planilha');
-    showToast('✓ Salvo com sucesso!');
-    resetScan();
+
+    const jwt = KJUR.jws.JWS.sign('RS256', header, payload, SERVICE_ACCOUNT.private_key);
+    log("Assinatura OK. Solicitando Access Token...");
+
+    const r = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`
+    });
+
+    const tokenData = await r.json();
+    
+    if (tokenData.error) {
+      log("ERRO GOOGLE: " + tokenData.error, "err");
+      log("MOTIVO: " + (tokenData.error_description || "Desconhecido"), "err");
+      btn.disabled = false;
+      btn.innerText = "TENTAR NOVAMENTE";
+      return;
+    }
+
+    log("Token recebido! Gravando na planilha...");
+    
+    const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/NFS-e!A:H:append?valueInputOption=USER_ENTERED`;
+    const appendR = await fetch(sheetUrl, {
+      method: 'POST',
+      headers: { 
+        Authorization: 'Bearer ' + tokenData.access_token,
+        'Content-Type': 'application/json' 
+      },
+      body: JSON.stringify({
+        values: [[
+          currentData.numero, currentData.data, currentData.prestador, 
+          "", currentData.valor, "", currentData.chave, new Date().toLocaleString()
+        ]]
+      })
+    });
+
+    if (appendR.ok) {
+      log("SUCESSO! Nota gravada na planilha.", "ok");
+      alert("✅ Gravado com sucesso!");
+      location.reload(); 
+    } else {
+      const errRes = await appendR.json();
+      log("ERRO AO GRAVAR: " + errRes.error.message, "err");
+    }
+
   } catch(e) {
-    setStatus('Erro: ' + e.message, 'error');
+    log("ERRO NO CÓDIGO: " + e.message, "err");
   }
   btn.disabled = false;
-  btn.textContent = 'Enviar para Sheets';
-}
-
-function setStatus(msg, type) {
-  const el = document.getElementById('statusBar');
-  el.className = 'status-bar ' + type;
-  el.innerHTML = `<span>${msg}</span>`;
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
+  btn.innerText = "ENVIAR AO GOOGLE SHEETS";
 }
 </script>
 </body>
