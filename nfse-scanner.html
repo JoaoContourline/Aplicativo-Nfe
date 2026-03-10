@@ -6,17 +6,17 @@
     <title>Scanner NFS-e</title>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
-        body { background: #09090b; color: white; font-family: sans-serif; padding: 20px; }
-        #qr-reader { width: 100%; border: 2px solid #22c55e; border-radius: 10px; }
+        body { background: #09090b; color: white; font-family: sans-serif; padding: 20px; margin: 0; }
+        #qr-reader { width: 100%; border: 2px solid #22c55e; border-radius: 10px; background: #000; }
         .card { background: #18181b; padding: 15px; border-radius: 10px; margin-top: 20px; border: 1px solid #3f3f46; }
-        button { width: 100%; padding: 15px; background: #22c55e; border: none; border-radius: 10px; font-weight: bold; margin-top: 10px; }
+        button { width: 100%; padding: 15px; background: #22c55e; border: none; border-radius: 10px; font-weight: bold; margin-top: 10px; color: black; }
     </style>
 </head>
 <body>
 
-    <h2>Scanner NFS-e</h2>
+    <h2 id="titulo">Scanner NFS-e</h2>
     <div id="qr-reader"></div>
-    <div id="status" style="margin-top:10px; color:#aaa; font-size:12px;">Aponte para o QR Code da nota...</div>
+    <div id="status" style="margin-top:10px; color:#aaa; font-size:12px;">Carregando câmera...</div>
 
     <div id="resultado" style="display:none;" class="card">
         <p id="texto-nota" style="margin:0 0 10px 0;"></p>
@@ -27,16 +27,22 @@
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAfwg-jei3GEW34UAMVRwRTw0TTh652rP8So1E3ebgf1fmPRKy-2doN-rP3kJZzt_P3g/exec';
         let dadosNota = {};
 
-        const html5QrCode = new Html5Qrcode("qr-reader");
-        html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, 
-            (decodedText) => {
-                document.getElementById('status').innerText = "QR detectado! Processando...";
-                html5QrCode.stop();
-                processarNota(decodedText);
-            }
-        );
+        // Inicia a câmera apenas quando a página estiver pronta
+        window.onload = () => {
+            const html5QrCode = new Html5Qrcode("qr-reader");
+            html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, 
+                (decodedText) => {
+                    document.getElementById('status').innerText = "QR detectado! Processando...";
+                    html5QrCode.stop();
+                    processarNota(decodedText);
+                }
+            ).catch(err => {
+                document.getElementById('status').innerText = "Erro na câmera: " + err;
+            });
+        };
 
         async function processarNota(url) {
+            document.getElementById('status').innerText = "Buscando dados da nota...";
             try {
                 const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
                 const html = await res.text();
@@ -53,17 +59,22 @@
                 document.getElementById('resultado').style.display = 'block';
                 document.getElementById('status').innerText = "Leitura concluída.";
             } catch(e) {
-                document.getElementById('status').innerText = "Erro ao buscar dados: " + e.message;
+                document.getElementById('status').innerText = "Erro ao buscar: " + e.message;
             }
         }
 
         async function enviar() {
+            document.getElementById('status').innerText = "Enviando para planilha...";
             const fd = new FormData();
             for(let key in dadosNota) fd.append(key, dadosNota[key]);
             
-            await fetch(SCRIPT_URL, { method: 'POST', body: fd });
-            alert("Enviado com sucesso!");
-            location.reload();
+            try {
+                await fetch(SCRIPT_URL, { method: 'POST', body: fd });
+                alert("Enviado com sucesso!");
+                location.reload();
+            } catch(e) {
+                document.getElementById('status').innerText = "Erro no envio: " + e.message;
+            }
         }
     </script>
 </body>
