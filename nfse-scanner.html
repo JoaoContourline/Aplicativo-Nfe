@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NFS-e Scanner V5</title>
+<title>NFS-e Scanner Final</title>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
   body { background: #09090b; color: #fff; font-family: sans-serif; padding: 20px; }
   #qr-reader { width: 100%; border: 2px solid #22c55e; border-radius: 12px; overflow: hidden; }
-  .btn { width: 100%; padding: 15px; background: #22c55e; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; }
+  .btn { width: 100%; padding: 15px; background: #22c55e; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; color: black; }
 </style>
 </head>
 <body>
@@ -21,7 +21,8 @@
   <div id="log" style="font-size:10px; color:#666; margin-top:20px;"></div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzlW0T2YW-M1V3HAbZ5yt3q0AVhcA9uGeR3QIQ-uvzGaTxd0Uud2b0vbjpGdbvIkRUvkA/exec';
+// URL FINAL QUE VOCÊ ME MANDOU
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAfwg-jei3GEW34UAMVRwRTw0TTh652rP8So1E3ebgf1fmPRKy-2doN-rP3kJZzt_P3g/exec';
 
 const html5QrCode = new Html5Qrcode("qr-reader");
 html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (text) => {
@@ -30,7 +31,7 @@ html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (text)
 });
 
 async function fetchData(url) {
-  document.getElementById('log').innerText = "Processando...";
+  document.getElementById('log').innerText = "Buscando dados...";
   const r = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
   const b = await r.text();
   const doc = new DOMParser().parseFromString(b, 'text/html').body.innerText;
@@ -46,8 +47,6 @@ async function fetchData(url) {
 
 async function sendToSheets() {
   document.getElementById('log').innerText = "Enviando...";
-  
-  // Usando FormData para evitar o erro de CORS/Failed to Fetch
   const formData = new FormData();
   formData.append('n', window.nota.n);
   formData.append('v', window.nota.v);
@@ -55,15 +54,10 @@ async function sendToSheets() {
   formData.append('c', window.nota.c);
 
   try {
-    await fetch(SCRIPT_URL, {
-      method: 'POST',
-      body: formData
-    });
+    await fetch(SCRIPT_URL, { method: 'POST', body: formData });
     alert("Enviado com sucesso!");
     location.reload();
-  } catch(e) { 
-    document.getElementById('log').innerText = "Erro: " + e.message;
-  }
+  } catch(e) { document.getElementById('log').innerText = "Erro: " + e.message; }
 }
 </script>
 </body>
