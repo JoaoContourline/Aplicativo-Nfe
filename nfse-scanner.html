@@ -9,23 +9,19 @@
 <style>
   :root { --bg: #09090b; --green: #22c55e; }
   body { background: var(--bg); color: #fff; font-family: sans-serif; padding: 15px; margin: 0; }
-  /* Ajuste para a câmera ocupar a tela toda com foco melhor */
   #qr-reader { width: 100%; border: 2px solid var(--green); border-radius: 16px; overflow: hidden; background: #000; }
   .btn { width: 100%; padding: 18px; background: var(--green); border: none; border-radius: 12px; font-weight: 800; margin-top: 15px; }
-  #debug-console { margin-top: 15px; background: #000; color: #4ade80; font-family: monospace; font-size: 10px; padding: 10px; height: 120px; overflow-y: auto; border: 1px solid #333; }
+  #debug-console { margin-top: 15px; background: #000; color: #4ade80; font-family: monospace; font-size: 10px; padding: 10px; height: 200px; overflow-y: auto; border: 1px solid #333; }
 </style>
 </head>
 <body>
 
-  <h3>Pro Scanner (Foco Otimizado)</h3>
+  <h3>Scanner Operacional</h3>
   <div id="qr-reader"></div>
-  <div id="status" style="margin: 10px 0; font-size: 12px;">Ajustando foco...</div>
-
   <div id="preview" style="display:none; background:#18181b; padding:15px; border-radius:12px; margin-top:10px;">
     <div id="data"></div>
     <button class="btn" id="sendBtn" onclick="sendToSheets()">ENVIAR NOTA</button>
   </div>
-
   <div id="debug-console">--- SISTEMA PRONTO ---</div>
 
 <script>
@@ -62,73 +58,56 @@ Wj1dk4Flx4lUCVlHIV+iEN1EnembUsAQ6TNy2QDfRvvZ9t6X5NQaOuMEB3kAkJUN
 -----END PRIVATE KEY-----`
 };
 
+function log(m) { const c = document.getElementById('debug-console'); c.innerHTML += `\n> ${m}`; c.scrollTop = c.scrollHeight; }
+
 const html5QrCode = new Html5Qrcode("qr-reader");
-
-// Configuração otimizada para foco
-const qrConfig = { 
-  fps: 20, 
-  qrbox: {width: 200, height: 200},
-  aspectRatio: 1.0 
-};
-
-html5QrCode.start({ facingMode: "environment" }, {
-  fps: 20,
-  qrbox: 200,
-  // Aumenta a resolução para ler códigos minúsculos
-  videoConstraints: {
-    facingMode: "environment",
-    width: { ideal: 1280 },
-    height: { ideal: 720 }
-  }
-}, (text) => {
-  log("QR Detectado!");
+html5QrCode.start({ facingMode: "environment" }, { fps: 20, qrbox: 200 }, (text) => {
   html5QrCode.stop();
   fetchData(text);
 });
 
-function log(m) { document.getElementById('debug-console').innerHTML += `\n> ${m}`; }
-
 async function fetchData(url) {
   try {
+    log("Buscando URL...");
     const r = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
     const h = await r.text();
-    const doc = new DOMParser().parseFromString(h, 'text/html');
-    const b = doc.body.innerText;
-    
-    // Armazena dados globais
+    const b = new DOMParser().parseFromString(h, 'text/html').body.innerText;
     window.nota = {
       n: b.match(/Número da NFS-e\s*\n\s*(\d+)/)?.[1] || "—",
       v: b.match(/Valor Líquido da NFS-e\s*\n\s*(R\$\s*[\d.,]+)/)?.[1] || "—",
       p: b.match(/Nome \/ Nome Empresarial\s*\n\s*([^\n]+)/)?.[1] || "—",
       c: b.match(/Chave de Acesso da NFS-e\s*\n\s*([A-Za-z0-9]+)/)?.[1] || "—"
     };
-
     document.getElementById('data').innerHTML = `<b>Nota:</b> ${window.nota.n}<br><b>Valor:</b> ${window.nota.v}`;
     document.getElementById('preview').style.display = 'block';
-  } catch(e) { log("Erro de leitura: " + e.message); }
+  } catch(e) { log("Erro busca: " + e.message); }
 }
 
 async function sendToSheets() {
-  log("Enviando...");
-  const now = Math.floor(Date.now() / 1000);
-  const sJWT = KJUR.jws.JWS.sign(null, JSON.stringify({alg: "RS256", typ: "JWT"}), 
-    JSON.stringify({iss: SERVICE_ACCOUNT.email, scope: "https://www.googleapis.com/auth/spreadsheets", aud: "https://oauth2.googleapis.com/token", iat: now-60, exp: now+3600}), 
-    SERVICE_ACCOUNT.key);
+  log("Autenticando...");
+  try {
+    const now = Math.floor(Date.now() / 1000);
+    const sJWT = KJUR.jws.JWS.sign(null, JSON.stringify({alg: "RS256", typ: "JWT"}), 
+      JSON.stringify({iss: SERVICE_ACCOUNT.email, scope: "https://www.googleapis.com/auth/spreadsheets", aud: "https://oauth2.googleapis.com/token", iat: now-60, exp: now+3600}), 
+      SERVICE_ACCOUNT.key);
+      
+    const r = await fetch('https://oauth2.googleapis.com/token', {method: 'POST', body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${sJWT}`});
+    const res = await r.json();
     
-  const r = await fetch('https://oauth2.googleapis.com/token', {method: 'POST', body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${sJWT}`});
-  const res = await r.json();
-  
-  if(res.access_token) {
-    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/NFS-e!A:H:append?valueInputOption=USER_ENTERED`, {
-      method: 'POST',
-      headers: { Authorization: 'Bearer ' + res.access_token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ values: [[window.nota.n, "", window.nota.p, "", window.nota.v, "", window.nota.c, new Date().toLocaleString()]] })
-    });
-    alert("Enviado!");
-    location.reload();
-  } else {
-    log("Erro: " + res.error_description);
-  }
+    if(res.access_token) {
+      log("Token recebido. Enviando...");
+      const appendR = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/NFS-e!A:H:append?valueInputOption=USER_ENTERED`, {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + res.access_token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ values: [[window.nota.n, "", window.nota.p, "", window.nota.v, "", window.nota.c, new Date().toLocaleString()]] })
+      });
+      const appendData = await appendR.json();
+      if(appendR.ok) { log("Sucesso!"); alert("Gravado!"); location.reload(); }
+      else { log("Erro Sheets: " + JSON.stringify(appendData)); }
+    } else {
+      log("Erro Auth: " + JSON.stringify(res));
+    }
+  } catch(e) { log("Erro final: " + e.toString()); }
 }
 </script>
 </body>
