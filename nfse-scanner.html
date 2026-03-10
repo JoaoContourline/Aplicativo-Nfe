@@ -5,18 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>NFS-e Pro Scanner</title>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.9.0/jsrsasign-all-min.js"></script>
 <style>
   :root { --bg: #09090b; --green: #22c55e; }
   body { background: var(--bg); color: #fff; font-family: sans-serif; padding: 15px; margin: 0; }
   #qr-reader { width: 100%; border: 2px solid var(--green); border-radius: 16px; overflow: hidden; background: #000; }
   .btn { width: 100%; padding: 18px; background: var(--green); border: none; border-radius: 12px; font-weight: 800; margin-top: 15px; }
-  #debug-console { margin-top: 15px; background: #000; color: #4ade80; font-family: monospace; font-size: 10px; padding: 10px; height: 200px; overflow-y: auto; border: 1px solid #333; }
+  #debug-console { margin-top: 15px; background: #000; color: #4ade80; font-family: monospace; font-size: 10px; padding: 10px; height: 120px; overflow-y: auto; border: 1px solid #333; }
 </style>
 </head>
 <body>
 
-  <h3>Scanner Operacional</h3>
+  <h3>Pro Scanner (Direct Link)</h3>
   <div id="qr-reader"></div>
   <div id="preview" style="display:none; background:#18181b; padding:15px; border-radius:12px; margin-top:10px;">
     <div id="data"></div>
@@ -25,38 +24,8 @@
   <div id="debug-console">--- SISTEMA PRONTO ---</div>
 
 <script>
-const SHEET_ID = '1330tKi9srogL71KVphJlTYuh-CUFjRX71LBuEZf8CIY';
-const SERVICE_ACCOUNT = {
-  email: 'aplicativo-nfe@i-informatics-477817-j5.iam.gserviceaccount.com',
-  key: `-----BEGIN PRIVATE KEY-----
-MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDDjiZ/DbQ2brYe
-L8CuYRpPiGWKKmwjfYpip/NJBemTGu8HNigwu6IYmnalNnAeTkuudFYajjXyqIn0
-kU+tAPqa0Zvic1naScPUSZkxFRkZ22EkV0xHy0K8v3222YqWk+r1gvG8LVd4P4ak
-4l0AA6P3sfme+5mAHL3ival3AjbJS2pd5NMh+kIbfBBJgyqq7cFNiqCrICscmSZV
-wnzcuulbOU4odTyTZGp7Drt5K0zEND8vkM7aeMxqnfev+uWHsXlBP8bYtVvaTLCb
-s3s4V0fWqcfyOtMMCT22SBzuxmDVvoJTsm+dfDl02xqVVSMcX1udQlykIH8z8Q2a
-rLAd/tmbAgMBAAECggEAQYIi/zjV/84CkAYrI78/kxj7+tbPNuxdKUNdyj6Cylah
-b+cCe6C/YkKMMDgWQvCzhZNPLMIq7EjtPdJXwHqteKNy9t7xYKCJS1oESV7p87F7
-zzK3SO2cQ6JaOKCTPnH6qZfd5s3BmXSeZCm4QcL2cIlcN5fNCg+WxJgIZueE9tUI
-cod/SaZ7HVeIQq4KHZ1B1QGRDzKcGP38On4feHvO+sDOyeS8uqndgCy4M0cJFvzw
-W5hA6PstVhyH3h2qwmM/qINJP2CYj6Y5jLAwV9pivVUNTDRUS/CXuJqv07bl+noG
-OAmu+dn4owCU0wTPtUa/rLtAU1V1Y5vvjmnfjlFA0QKBgQDt6Un8nrvU5R3H8hZR
-JeAzzKnyhFfSn64D/SxUuJ2mXpLtGSAqvMqNcCfI2HTG8EKZlC6zNf/rxkWt6oIe
-ufhjq9ihEPO5jLiiVx78BHIn/fU0KJ47y2Uu4hzt20AgtvxScXjYns3tn7x0VG81
-HIxhfgYMXYuoIY+z1tJsZxzPnQKBgQDSbHFl1UqjXe/0CCbmNe4xGcHNRtp/fHN7
-Di/YiaobPZRVag71QMzXoaxKMzREmPCyxwK3mim+dgGyGqutW/Xt9pKTMm5CqKO8
-s7XDvnxzXTJ7kLAyx8dM93MISbcQ4MsWdmktWppltT+U1kbMdkTGWrfJ3fyuqqF+
-lep5Kj60lwKBgBf5Ridap3rQi6u2TWFn+6u8l/OEOoVS6eok/O6cm+ZD6XJS8dbc
-p1yRTLEEft/9Hfjz4bDVZDCSDjt0QiBuhQUmL/IrDyRHdeOF++1RVV+KS8cxwKAt
-4shSqK+fRFsHlW2JWbAacI3dZtQiHgKwGcVJObrNQmFy4FQy9YlO6qxRAoGAALC4
-YoQjnYuWWO+Z6RFuOZ0DBMBhwR9QZavzPjudYj9+eBVD/Uv8IAz4urmWR09VItEC
-UkXgMy7B7Kqnu4bctK4lZvQ4ZmGVP+46/2xljh9VJhCgc1oybi81omZTgmuqXuV+
-jNaKQSEqFzvouYz9xsTPa4sd5BjNNNQbE9CuqfsCgYEA29uURNvbIqhw0irsSmpg
-Wj1dk4Flx4lUCVlHIV+iEN1EnembUsAQ6TNy2QDfRvvZ9t6X5NQaOuMEB3kAkJUN
-3J2bOXUtPVAxL1B1OzMrlh6Z1egZbt99lXwp776C2QlzI7wBm8gGL1FVDYgURYgW
-/I2KhSM8nDFCQCxHzEmBOac=
------END PRIVATE KEY-----`
-};
+// AQUI VAI A SUA URL QUE VOCÊ ME MANDOU
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzlW0T2YW-M1V3HAbZ5yt3q0AVhcA9uGeR3QIQ-uvzGaTxd0Uud2b0vbjpGdbvIkRUvkA/exec';
 
 function log(m) { const c = document.getElementById('debug-console'); c.innerHTML += `\n> ${m}`; c.scrollTop = c.scrollHeight; }
 
@@ -68,15 +37,15 @@ html5QrCode.start({ facingMode: "environment" }, { fps: 20, qrbox: 200 }, (text)
 
 async function fetchData(url) {
   try {
-    log("Buscando URL...");
+    log("Lendo nota...");
     const r = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
-    const h = await r.text();
-    const b = new DOMParser().parseFromString(h, 'text/html').body.innerText;
+    const b = await r.text();
+    const doc = new DOMParser().parseFromString(b, 'text/html').body.innerText;
     window.nota = {
-      n: b.match(/Número da NFS-e\s*\n\s*(\d+)/)?.[1] || "—",
-      v: b.match(/Valor Líquido da NFS-e\s*\n\s*(R\$\s*[\d.,]+)/)?.[1] || "—",
-      p: b.match(/Nome \/ Nome Empresarial\s*\n\s*([^\n]+)/)?.[1] || "—",
-      c: b.match(/Chave de Acesso da NFS-e\s*\n\s*([A-Za-z0-9]+)/)?.[1] || "—"
+      n: doc.match(/Número da NFS-e\s*\n\s*(\d+)/)?.[1] || "—",
+      v: doc.match(/Valor Líquido da NFS-e\s*\n\s*(R\$\s*[\d.,]+)/)?.[1] || "—",
+      p: doc.match(/Nome \/ Nome Empresarial\s*\n\s*([^\n]+)/)?.[1] || "—",
+      c: doc.match(/Chave de Acesso da NFS-e\s*\n\s*([A-Za-z0-9]+)/)?.[1] || "—"
     };
     document.getElementById('data').innerHTML = `<b>Nota:</b> ${window.nota.n}<br><b>Valor:</b> ${window.nota.v}`;
     document.getElementById('preview').style.display = 'block';
@@ -84,30 +53,18 @@ async function fetchData(url) {
 }
 
 async function sendToSheets() {
-  log("Autenticando...");
+  log("Enviando via Script...");
   try {
-    const now = Math.floor(Date.now() / 1000);
-    const sJWT = KJUR.jws.JWS.sign(null, JSON.stringify({alg: "RS256", typ: "JWT"}), 
-      JSON.stringify({iss: SERVICE_ACCOUNT.email, scope: "https://www.googleapis.com/auth/spreadsheets", aud: "https://oauth2.googleapis.com/token", iat: now-60, exp: now+3600}), 
-      SERVICE_ACCOUNT.key);
-      
-    const r = await fetch('https://oauth2.googleapis.com/token', {method: 'POST', body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${sJWT}`});
-    const res = await r.json();
-    
-    if(res.access_token) {
-      log("Token recebido. Enviando...");
-      const appendR = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/NFS-e!A:H:append?valueInputOption=USER_ENTERED`, {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + res.access_token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ values: [[window.nota.n, "", window.nota.p, "", window.nota.v, "", window.nota.c, new Date().toLocaleString()]] })
-      });
-      const appendData = await appendR.json();
-      if(appendR.ok) { log("Sucesso!"); alert("Gravado!"); location.reload(); }
-      else { log("Erro Sheets: " + JSON.stringify(appendData)); }
-    } else {
-      log("Erro Auth: " + JSON.stringify(res));
-    }
-  } catch(e) { log("Erro final: " + e.toString()); }
+    const r = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors', // Isso ignora o bloqueio de navegador
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(window.nota)
+    });
+    log("Enviado com sucesso!");
+    alert("Nota gravada na planilha!");
+    location.reload();
+  } catch(e) { log("Erro: " + e.message); }
 }
 </script>
 </body>
