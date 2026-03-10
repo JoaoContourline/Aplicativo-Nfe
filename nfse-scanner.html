@@ -2,71 +2,613 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Scanner Chave NFS-e</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>NFS-e Scanner</title>
 <style>
-  body { margin:0; background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; font-family:monospace; color:#fff; gap:16px; padding: 20px; }
-  video { width:100%; max-width:480px; height:auto; border:3px solid #333; }
-  #status { font-size:16px; padding:12px; border-radius:6px; background:#222; text-align:center; width:100%; max-width:480px; }
-  #result { display:none; background:#111; padding:20px; border:1px solid #0f0; width:100%; max-width:480px; border-radius:8px; text-align:center; }
-  button { padding:15px 32px; font-size:16px; cursor:pointer; border:none; background:#0f0; color:#000; font-weight:bold; border-radius:4px; width:100%; max-width:480px; }
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #09090b;
+    --surface: #18181b;
+    --border: #3f3f46;
+    --text: #fafafa;
+    --muted: #a1a1aa;
+    --green: #22c55e;
+    --green-bg: #052e16;
+    --green-dim: #166534;
+    --blue: #3b82f6;
+    --red: #ef4444;
+  }
+
+  html, body {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px 40px;
+    gap: 14px;
+  }
+
+  .topbar {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo { display: flex; align-items: center; gap: 10px; }
+
+  .logo-mark {
+    width: 34px; height: 34px;
+    background: var(--green);
+    border-radius: 8px;
+    display: grid; place-items: center;
+  }
+
+  .logo-mark svg { width: 18px; height: 18px; }
+
+  .logo-text { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 700; }
+  .logo-sub  { font-size: 11px; color: var(--muted); }
+
+  .badge {
+    font-size: 11px; color: var(--green);
+    background: var(--green-bg);
+    border: 1px solid var(--green-dim);
+    border-radius: 6px;
+    padding: 4px 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .badge-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+  }
+
+  /* Camera */
+  .cam-wrap {
+    width: 100%; max-width: 480px;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: #000;
+    aspect-ratio: 4/3;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: none;
+  }
+
+  .cam-idle {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 10px; color: var(--muted); text-align: center;
+    padding: 20px;
+  }
+
+  .cam-idle svg { width: 48px; height: 48px; opacity: 0.3; }
+  .cam-idle p { font-size: 13px; }
+
+  /* Corners */
+  .corner {
+    position: absolute;
+    width: 28px; height: 28px;
+    pointer-events: none;
+    display: none;
+  }
+  .corner.show { display: block; }
+  .corner.tl { top: 12px; left: 12px; border-top: 2.5px solid var(--green); border-left: 2.5px solid var(--green); }
+  .corner.tr { top: 12px; right: 12px; border-top: 2.5px solid var(--green); border-right: 2.5px solid var(--green); }
+  .corner.bl { bottom: 12px; left: 12px; border-bottom: 2.5px solid var(--green); border-left: 2.5px solid var(--green); }
+  .corner.br { bottom: 12px; right: 12px; border-bottom: 2.5px solid var(--green); border-right: 2.5px solid var(--green); }
+
+  .scan-line {
+    position: absolute; left: 12px; right: 12px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+    box-shadow: 0 0 10px var(--green);
+    animation: scanmove 2s ease-in-out infinite;
+    display: none;
+  }
+  .scan-line.show { display: block; }
+  @keyframes scanmove { 0%{top:12px} 50%{top:calc(100% - 12px)} 100%{top:12px} }
+
+  .flash {
+    position: absolute; inset: 0;
+    background: rgba(34,197,94,0.25);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.1s;
+  }
+  .flash.show { opacity: 1; }
+
+  /* Status */
+  .status {
+    width: 100%; max-width: 480px;
+    padding: 11px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 13px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--muted);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .status.ok    { border-color: var(--green-dim); background: var(--green-bg); color: var(--green); }
+  .status.error { border-color: #7f1d1d; background: #450a0a; color: var(--red); }
+  .status.info  { border-color: #1e3a5f; background: #0f172a; color: var(--blue); }
+
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Buttons */
+  .btn-row { width: 100%; max-width: 480px; display: flex; gap: 10px; }
+
+  .btn {
+    flex: 1; padding: 13px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn:hover:not(:disabled) { border-color: #71717a; }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn.primary { background: var(--green); color: #000; border-color: var(--green); flex: 2; }
+  .btn.primary:hover:not(:disabled) { background: #16a34a; }
+
+  /* Result card */
+  .result-card {
+    display: none;
+    width: 100%; max-width: 480px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .result-card.show { display: block; }
+
+  .result-header {
+    padding: 10px 14px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--muted);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .result-ok { color: var(--green); font-size: 11px; }
+
+  .field {
+    display: flex;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px; align-items: flex-start;
+    background: var(--surface);
+  }
+  .field:last-child { border-bottom: none; }
+
+  .field-name {
+    font-size: 11px; color: var(--muted);
+    width: 90px; flex-shrink: 0;
+    padding-top: 1px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .field-val {
+    font-size: 13px; font-weight: 500;
+    color: var(--text); word-break: break-all;
+    line-height: 1.4; flex: 1;
+  }
+
+  .field-val.mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+  .field-val.green { color: var(--green); font-weight: 700; }
+
+  /* Send row */
+  .send-row {
+    display: none;
+    width: 100%; max-width: 480px;
+    gap: 10px;
+  }
+  .send-row.show { display: flex; }
+
+  /* History */
+  .history {
+    display: none;
+    width: 100%; max-width: 480px;
+    flex-direction: column; gap: 6px;
+  }
+  .history.show { display: flex; }
+
+  .history-title {
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--muted);
+    display: flex; justify-content: space-between;
+  }
+
+  .history-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .history-info { flex: 1; overflow: hidden; }
+  .history-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .history-meta { font-size: 11px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+
+  .tag {
+    font-size: 10px; padding: 3px 7px;
+    border-radius: 4px; font-weight: 600;
+    background: var(--green-bg); color: var(--green);
+    border: 1px solid var(--green-dim);
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(12px);
+    background: var(--text); color: var(--bg);
+    font-size: 13px; font-weight: 600;
+    padding: 10px 20px; border-radius: 8px;
+    opacity: 0; transition: all 0.25s;
+    pointer-events: none; z-index: 100;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
 
-  <video id="v" autoplay muted playsinline></video>
-  <div id="status">Clique em Iniciar</div>
-  
-  <div id="result">
-    <div id="data-display" style="margin-bottom:20px; font-size: 14px; word-break: break-all;"></div>
-    <button onclick="enviar()">ENVIAR CHAVE PARA PLANILHA</button>
+  <!-- Header -->
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/><circle cx="17.5" cy="17.5" r="2.5" fill="#000" stroke="none"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-text">NFS-e Scanner</div>
+        <div class="logo-sub">Contourline</div>
+      </div>
+    </div>
+    <div class="badge"><div class="badge-dot"></div> Sheets</div>
   </div>
 
-  <button id="btn-init" onclick="init()">Iniciar Câmera</button>
+  <!-- Camera -->
+  <div class="cam-wrap">
+    <div class="cam-idle" id="camIdle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+      <p>Câmera desligada</p>
+    </div>
+    <video id="video" autoplay muted playsinline></video>
+    <div class="corner tl" id="c1"></div>
+    <div class="corner tr" id="c2"></div>
+    <div class="corner bl" id="c3"></div>
+    <div class="corner br" id="c4"></div>
+    <div class="scan-line" id="scanLine"></div>
+    <div class="flash" id="flash"></div>
+  </div>
+
+  <!-- Status -->
+  <div class="status" id="status">Aguardando...</div>
+
+  <!-- Buttons -->
+  <div class="btn-row">
+    <button class="btn" id="camBtn" onclick="toggleCam()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+      Ligar
+    </button>
+    <button class="btn primary" id="scanBtn" onclick="startScan()" disabled>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/><circle cx="17.5" cy="17.5" r="2" fill="currentColor" stroke="none"/>
+      </svg>
+      Escanear QR
+    </button>
+  </div>
+
+  <!-- Result -->
+  <div class="result-card" id="resultCard">
+    <div class="result-header">
+      <span>Dados da nota</span>
+      <span class="result-ok">✓ QR lido</span>
+    </div>
+    <div id="resultBody"></div>
+  </div>
+
+  <!-- Send -->
+  <div class="send-row" id="sendRow">
+    <button class="btn" onclick="resetScan()">Cancelar</button>
+    <button class="btn primary" id="sendBtn" onclick="sendToSheets()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="22 2 11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+      Enviar para Sheets
+    </button>
+  </div>
+
+  <!-- History -->
+  <div class="history" id="history">
+    <div class="history-title">
+      <span>Histórico da sessão</span>
+      <span id="histCount"></span>
+    </div>
+    <div id="histList"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAfwg-jei3GEW34UAMVRwRTw0TTh652rP8So1E3ebgf1fmPRKy-2doN-rP3kJZzt_P3g/exec';
-let chave = "";
+// ── CONFIG ───────────────────────────────────────────────────────────────
+// Apps Script URL — substitua pela sua após publicar o script
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAfwg-jei3GEW34UAMVRwRTw0TTh652rP8So1E3ebgf1fmPRKy-2doN-rP3kJZzt_P3g/exec';
 
-async function init() {
-  if (!('BarcodeDetector' in window)) { alert('Use Chrome ou Edge atualizado'); return; }
-  const det = new BarcodeDetector({ formats: ['qr_code'] });
-  document.getElementById('btn-init').style.display = 'none';
-  document.getElementById('status').textContent = '📷 Abrindo câmera...';
+// ── STATE ────────────────────────────────────────────────────────────────
+let stream = null, camOn = false, scanning = false;
+let currentData = null, sessionHistory = [];
+const video = document.getElementById('video');
+
+// ── CAMERA ───────────────────────────────────────────────────────────────
+async function toggleCam() {
+  camOn ? stopCam() : await startCam();
+}
+
+async function startCam() {
+  setStatus('Conectando câmera...', '');
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+    });
+    video.srcObject = stream;
+    await video.play();
+    camOn = true;
+    video.style.display = 'block';
+    document.getElementById('camIdle').style.display = 'none';
+    document.getElementById('camBtn').innerHTML = '✕ Desligar';
+    document.getElementById('scanBtn').disabled = false;
+    setStatus('Câmera ativa — clique em Escanear QR', 'info');
+  } catch(e) {
+    setStatus('Erro: ' + e.message, 'error');
+  }
+}
+
+function stopCam() {
+  scanning = false;
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  camOn = false;
+  video.style.display = 'none';
+  video.srcObject = null;
+  document.getElementById('camIdle').style.display = 'flex';
+  document.getElementById('camBtn').innerHTML = '📷 Ligar';
+  document.getElementById('scanBtn').disabled = true;
+  ['c1','c2','c3','c4'].forEach(id => document.getElementById(id).className = 'corner ' + id.replace('c',''));
+  document.getElementById('scanLine').className = 'scan-line';
+  setStatus('Câmera desligada', '');
+}
+
+// ── SCAN ─────────────────────────────────────────────────────────────────
+async function startScan() {
+  if (!camOn || scanning) return;
+
+  // Verifica suporte ao BarcodeDetector
+  if (!('BarcodeDetector' in window)) {
+    setStatus('❌ Use Chrome ou Edge atualizado', 'error');
+    return;
+  }
+
+  scanning = true;
+  document.getElementById('scanBtn').disabled = true;
+  ['c1','c2','c3','c4'].forEach(id => document.getElementById(id).classList.add('show'));
+  document.getElementById('scanLine').classList.add('show');
+  setStatus('Aponte para o QR code...', 'info');
+
+  const detector = new BarcodeDetector({ formats: ['qr_code'] });
+
+  async function loop() {
+    if (!scanning) return;
+    try {
+      const codes = await detector.detect(video);
+      if (codes.length > 0) {
+        scanning = false;
+        ['c1','c2','c3','c4'].forEach(id => document.getElementById(id).classList.remove('show'));
+        document.getElementById('scanLine').classList.remove('show');
+
+        // Flash
+        const flash = document.getElementById('flash');
+        flash.classList.add('show');
+        setTimeout(() => flash.classList.remove('show'), 400);
+
+        await processQR(codes[0].rawValue);
+      } else {
+        setTimeout(loop, 150);
+      }
+    } catch(e) {
+      setTimeout(loop, 150);
+    }
+  }
+
+  loop();
+}
+
+// ── PROCESS QR ───────────────────────────────────────────────────────────
+async function processQR(url) {
+  setStatus('QR detectado! Buscando dados...', 'info');
 
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-    const v = document.getElementById('v');
-    v.srcObject = stream;
-    await v.play();
-
-    async function scan() {
-      const codes = await det.detect(v);
-      if (codes.length > 0) {
-        v.style.display = 'none';
-        extrairChave(codes[0].rawValue);
-      } else { setTimeout(scan, 200); }
-    }
-    scan();
-  } catch(e) { document.getElementById('status').textContent = '❌ Erro Câmera: ' + e.message; }
+    const html = await fetchNFSe(url);
+    const data = parseNFSe(html, url);
+    currentData = data;
+    showResult(data);
+    setStatus('Dados prontos — confirme e envie', 'ok');
+  } catch(e) {
+    setStatus('Erro ao buscar nota: ' + e.message, 'error');
+    document.getElementById('scanBtn').disabled = false;
+  }
 }
 
-function extrairChave(url) {
-  // Procura por uma sequência de 44 dígitos numéricos dentro da URL
-  const match = url.match(/\d{44}/);
-  chave = match ? match[0] : "Chave não encontrada na URL";
-  
-  document.getElementById('status').textContent = '✅ QR LIDO!';
-  document.getElementById('data-display').innerHTML = `CHAVE:<br>${chave}`;
-  document.getElementById('result').style.display = 'block';
+// ── FETCH NFS-e ───────────────────────────────────────────────────────────
+async function fetchNFSe(url) {
+  const proxies = [
+    u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+    u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+    u => `https://thingproxy.freeboard.io/fetch/${u}`,
+  ];
+
+  for (const makeProxy of proxies) {
+    try {
+      const resp = await fetch(makeProxy(url), { signal: AbortSignal.timeout(8000) });
+      if (!resp.ok) continue;
+      const html = await resp.text();
+      if (html && html.length > 200) return html;
+    } catch(e) {}
+  }
+  throw new Error('Não foi possível buscar os dados da nota.');
 }
 
-async function enviar() {
-  document.getElementById('status').textContent = '🚀 Enviando...';
-  const url = `${SCRIPT_URL}?c=${encodeURIComponent(chave)}`;
-  await fetch(url, { method: 'GET', mode: 'no-cors' });
-  alert("✅ Chave enviada!");
-  location.reload();
+function parseNFSe(html, url) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const text = doc.body ? doc.body.innerText : html;
+
+  function get(pattern) {
+    const m = text.match(pattern);
+    return m ? m[1].trim() : '—';
+  }
+
+  return {
+    numero:    get(/Número da NFS-e\s*\n\s*(\d+)/),
+    data_em:   get(/Data e Hora de Emissão da NFS-e\s*\n\s*([\d\/]+ [\d:]+)/),
+    prestador: get(/Nome \/ Nome Empresarial\s*\n\s*([^\n]+)/),
+    cnpj:      get(/CNPJ \/ CPF \/ NIF\s*\n\s*([\d.\/\-]+)/),
+    valor:     get(/Valor Líquido da NFS-e\s*\n\s*(R\$\s*[\d.,]+)/),
+    descricao: get(/Descrição do Serviço\s*\n\s*([^\n]{5,})/),
+    chave:     get(/Chave de Acesso da NFS-e\s*\n\s*([A-Za-z0-9]+)/),
+    url
+  };
+}
+
+// ── RESULT ────────────────────────────────────────────────────────────────
+function showResult(d) {
+  const fields = [
+    { name: 'Nº NFS-e',  val: d.numero,    cls: 'green' },
+    { name: 'Data',       val: d.data_em,   cls: '' },
+    { name: 'Prestador',  val: d.prestador, cls: '' },
+    { name: 'CNPJ',       val: d.cnpj,      cls: 'mono' },
+    { name: 'Valor',      val: d.valor,     cls: 'green' },
+    { name: 'Serviço',    val: d.descricao, cls: '' },
+    { name: 'Chave',      val: d.chave,     cls: 'mono' },
+  ];
+  document.getElementById('resultBody').innerHTML = fields.map(f =>
+    `<div class="field"><div class="field-name">${f.name}</div><div class="field-val ${f.cls}">${f.val}</div></div>`
+  ).join('');
+  document.getElementById('resultCard').classList.add('show');
+  document.getElementById('sendRow').classList.add('show');
+}
+
+function resetScan() {
+  currentData = null;
+  document.getElementById('resultCard').classList.remove('show');
+  document.getElementById('sendRow').classList.remove('show');
+  document.getElementById('scanBtn').disabled = false;
+  setStatus('Câmera ativa — clique em Escanear QR', 'info');
+}
+
+// ── SEND TO SHEETS ────────────────────────────────────────────────────────
+async function sendToSheets() {
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Enviando...';
+  setStatus('Enviando para o Sheets...', 'info');
+
+  try {
+    const params = new URLSearchParams({
+      numero:    currentData.numero,
+      data:      currentData.data_em,
+      prestador: currentData.prestador,
+      cnpj:      currentData.cnpj,
+      valor:     currentData.valor,
+      descricao: currentData.descricao,
+      chave:     currentData.chave,
+    });
+
+    await fetch(`${APPS_SCRIPT_URL}?${params}`, { method: 'GET', mode: 'no-cors' });
+
+    setStatus('✓ Nota enviada para o Sheets!', 'ok');
+    showToast('✓ Enviado com sucesso!');
+
+    sessionHistory.unshift(currentData);
+    renderHistory();
+    resetScan();
+
+  } catch(e) {
+    setStatus('Erro ao enviar: ' + e.message, 'error');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '📤 Enviar para Sheets';
+}
+
+// ── HISTORY ───────────────────────────────────────────────────────────────
+function renderHistory() {
+  if (!sessionHistory.length) return;
+  document.getElementById('history').classList.add('show');
+  document.getElementById('histCount').textContent = sessionHistory.length + ' nota(s)';
+  document.getElementById('histList').innerHTML = sessionHistory.map(h => `
+    <div class="history-item">
+      <div class="history-info">
+        <div class="history-name">${h.prestador}</div>
+        <div class="history-meta">Nº ${h.numero} · ${h.valor} · ${h.data_em}</div>
+      </div>
+      <div class="tag">Enviado</div>
+    </div>
+  `).join('');
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+function setStatus(msg, type) {
+  const el = document.getElementById('status');
+  const loading = type === 'info' && (msg.includes('Buscando') || msg.includes('Enviando') || msg.includes('Conectando'));
+  el.className = 'status' + (type ? ' ' + type : '');
+  el.innerHTML = (loading ? '<div class="spinner"></div>' : '') + `<span>${msg}</span>`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
 }
 </script>
 </body>
