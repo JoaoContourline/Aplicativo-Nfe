@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NFS-e Scanner Pro</title>
+<title>Scanner Chave NFS-e</title>
 <style>
   body { margin:0; background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; font-family:monospace; color:#fff; gap:16px; padding: 20px; }
   video { width:100%; max-width:480px; height:auto; border:3px solid #333; }
@@ -18,15 +18,15 @@
   <div id="status">Clique em Iniciar</div>
   
   <div id="result">
-    <div id="data-display" style="margin-bottom:20px; font-size: 14px; text-align: left;"></div>
-    <button onclick="enviar()">ENVIAR PARA PLANILHA</button>
+    <div id="data-display" style="margin-bottom:20px; font-size: 14px; word-break: break-all;"></div>
+    <button onclick="enviar()">ENVIAR CHAVE PARA PLANILHA</button>
   </div>
 
   <button id="btn-init" onclick="init()">Iniciar Câmera</button>
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAfwg-jei3GEW34UAMVRwRTw0TTh652rP8So1E3ebgf1fmPRKy-2doN-rP3kJZzt_P3g/exec';
-let notaDados = {};
+let chave = "";
 
 async function init() {
   if (!('BarcodeDetector' in window)) { alert('Use Chrome ou Edge atualizado'); return; }
@@ -43,49 +43,29 @@ async function init() {
     async function scan() {
       const codes = await det.detect(v);
       if (codes.length > 0) {
-        document.getElementById('status').textContent = '✅ QR LIDO!';
         v.style.display = 'none';
-        processar(codes[0].rawValue);
+        extrairChave(codes[0].rawValue);
       } else { setTimeout(scan, 200); }
     }
     scan();
   } catch(e) { document.getElementById('status').textContent = '❌ Erro Câmera: ' + e.message; }
 }
 
-async function processar(url) {
-  document.getElementById('status').textContent = '🔍 Buscando dados...';
-  try {
-    // Proxy robusto para leitura externa
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-    const res = await fetch(proxyUrl);
-    const data = await res.json();
-    const html = data.contents;
-    
-    // Filtros de extração melhorados
-    const nMatch = html.match(/(?:Número|Nº|Nota|NFS-e)[^0-9]+(\d{5,15})/i);
-    const vMatch = html.match(/(?:Valor|Total|Líquido)[^0-9]*(R\$\s*[\d.,]+)/i);
-
-    notaDados = {
-      n: nMatch ? nMatch[1] : "NÃO ACHEI",
-      v: vMatch ? vMatch[1] : "NÃO ACHEI"
-    };
-
-    document.getElementById('data-display').innerHTML = `
-      NOTA: ${notaDados.n}<br>
-      VALOR: ${notaDados.v}
-    `;
-    document.getElementById('result').style.display = 'block';
-    document.getElementById('status').textContent = 'Finalizado.';
-  } catch(e) { 
-    document.getElementById('status').textContent = '❌ Erro no Proxy: ' + e.message; 
-  }
+function extrairChave(url) {
+  // Procura por uma sequência de 44 dígitos numéricos dentro da URL
+  const match = url.match(/\d{44}/);
+  chave = match ? match[0] : "Chave não encontrada na URL";
+  
+  document.getElementById('status').textContent = '✅ QR LIDO!';
+  document.getElementById('data-display').innerHTML = `CHAVE:<br>${chave}`;
+  document.getElementById('result').style.display = 'block';
 }
 
 async function enviar() {
   document.getElementById('status').textContent = '🚀 Enviando...';
-  const url = `${SCRIPT_URL}?n=${encodeURIComponent(notaDados.n)}&v=${encodeURIComponent(notaDados.v)}`;
+  const url = `${SCRIPT_URL}?c=${encodeURIComponent(chave)}`;
   await fetch(url, { method: 'GET', mode: 'no-cors' });
-  alert("✅ Sucesso!");
+  alert("✅ Chave enviada!");
   location.reload();
 }
 </script>
