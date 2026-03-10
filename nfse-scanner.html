@@ -165,7 +165,7 @@
 </div>
 
 <!-- App (hidden until login) -->
-<div id="appContent" style="display:none;width:100%;flex-direction:column;align-items:center;gap:12px;">
+<div id="appContent" style="display:none;width:100%;align-items:center;gap:12px;">
   <div class="cam-wrap">
     <div class="cam-idle" id="camIdle">
       <div class="cam-idle-icon">📷</div>
@@ -231,11 +231,21 @@ function fazerLogin() {
   if (!nome)          { erro.style.display = 'block'; erro.textContent = 'Selecione seu nome'; return; }
   if (senha !== SENHA){ erro.style.display = 'block'; erro.textContent = 'Senha incorreta'; return; }
   nomeUsuario = nome;
+  sessionStorage.setItem('nfse_usuario', nome);
+  mostrarApp(nome);
+}
+function mostrarApp(nome) {
+  nomeUsuario = nome;
   document.getElementById('loginCard').style.display = 'none';
   const app = document.getElementById('appContent');
-  app.style.display = 'flex';
+  app.style.cssText = 'display:flex;flex-direction:column;width:100%;align-items:center;gap:12px;';
   setStatus(`Olá, ${nome}! Ligue a câmera para começar.`, 'info');
 }
+// Restaura sessão ao recarregar
+(function(){
+  const salvo = sessionStorage.getItem('nfse_usuario');
+  if (salvo) mostrarApp(salvo);
+})();
 document.getElementById('inputSenha').addEventListener('keydown', e => { if (e.key === 'Enter') fazerLogin(); });
 
 // ── CAMERA ────────────────────────────────────────────
