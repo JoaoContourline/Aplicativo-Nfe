@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>NFS-e Scanner</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/zxing-wasm@1/dist/iife/reader/index.js"></script>
 <!-- JWT / Google Auth via jsrsasign -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.9.0/jsrsasign-all-min.js"></script>
 <style>
@@ -570,11 +570,10 @@ Wj1dk4Flx4lUCVlHIV+iEN1EnembUsAQ6TNy2QDfRvvZ9t6X5NQaOuMEB3kAkJUN
 // ── State ────────────────────────────────────────────────
 let stream = null, camOn = false, scanning = false, animFrame = null;
 let currentData = null, sessionHistory = [];
+let scanControls = null;
 const video  = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const ctx    = canvas.getContext('2d', { willReadFrequently: true });
-const offscreen = document.createElement('canvas');
-const offCtx    = offscreen.getContext('2d', { willReadFrequently: true });
 
 // ── Camera ───────────────────────────────────────────────
 async function toggleCam() {
@@ -626,6 +625,7 @@ async function startCam() {
 function stopCam() {
   scanning = false;
   if (animFrame) cancelAnimationFrame(animFrame);
+  // nada a resetar com zxing-wasm
   if (stream) stream.getTracks().forEach(t => t.stop());
   camOn = false;
   video.style.display = 'none';
@@ -647,69 +647,54 @@ function startScan() {
   document.getElementById('scanLine').className = 'scan-line show';
   document.getElementById('scanBtn').disabled = true;
   setStatus('Aponte para o QR code da nota...', 'info');
+
   animFrame = requestAnimationFrame(scanLoop);
 }
 
-function scanLoop() {
+async function scanLoop() {
   if (!scanning) return;
   if (video.readyState === video.HAVE_ENOUGH_DATA) {
     const vw = video.videoWidth, vh = video.videoHeight;
-    const isFront = video.style.transform === 'scaleX(-1)';
 
-    function draw(targetCtx, tw, th, sx, sy, sw, sh) {
-      if (isFront) {
-        targetCtx.save(); targetCtx.translate(tw, 0); targetCtx.scale(-1, 1);
-        targetCtx.drawImage(video, sx, sy, sw, sh, 0, 0, tw, th);
-        targetCtx.restore();
-      } else {
-        targetCtx.drawImage(video, sx, sy, sw, sh, 0, 0, tw, th);
-      }
-    }
-
-    // Pass 1 — frame completo (detecta QR em qualquer posição)
+    // Desenha frame completo no canvas
     canvas.width = vw; canvas.height = vh;
-    draw(ctx, vw, vh, 0, 0, vw, vh);
-    let code = tryQR(ctx, vw, vh);
+    ctx.drawImage(video, 0, 0, vw, vh);
 
-    // Passes 2-9: varredura em grade 3x3 com zoom 2x (cobre qualquer posição)
-    if (!code) {
+    // Tenta ler QR do frame inteiro
+    let result = await tryQR(ctx, vw, vh);
+
+    // Se não achou, tenta grade 3x3 com zoom 3x
+    if (!result) {
+      const offscreen2 = document.createElement('canvas');
+      const offCtx2 = offscreen2.getContext('2d', { willReadFrequently: true });
       const tileW = vw / 3, tileH = vh / 3;
-      const zw = Math.round(tileW * 2), zh = Math.round(tileH * 2);
-      offscreen.width = zw; offscreen.height = zh;
-      outer: for (let row = 0; row < 3; row++) {
-        for (let col = 0; col < 3; col++) {
-          draw(offCtx, zw, zh, col * tileW, row * tileH, tileW, tileH);
-          code = tryQR(offCtx, zw, zh);
-          if (code) break outer;
+      const zw = Math.round(tileW * 3), zh = Math.round(tileH * 3);
+      offscreen2.width = zw; offscreen2.height = zh;
+      for (let row = 0; row < 3 && !result; row++) {
+        for (let col = 0; col < 3 && !result; col++) {
+          offCtx2.drawImage(video, col * tileW, row * tileH, tileW, tileH, 0, 0, zw, zh);
+          result = await tryQR(offCtx2, zw, zh);
         }
       }
     }
 
-    // Pass 10-18: grade 3x3 com zoom 4x (QR minúsculo em qualquer posição)
-    if (!code) {
-      const tileW = vw / 3, tileH = vh / 3;
-      const zw = Math.round(tileW * 4), zh = Math.round(tileH * 4);
-      offscreen.width = zw; offscreen.height = zh;
-      outer2: for (let row = 0; row < 3; row++) {
-        for (let col = 0; col < 3; col++) {
-          draw(offCtx, zw, zh, col * tileW, row * tileH, tileW, tileH);
-          code = tryQR(offCtx, zw, zh);
-          if (code) break outer2;
-        }
-      }
-    }
-
-    if (code) {
-      onQRFound(code.data);
+    if (result) {
+      onQRFound(result);
       return;
     }
   }
   animFrame = requestAnimationFrame(scanLoop);
 }
 
-function tryQR(context, w, h) {
-  const d = context.getImageData(0, 0, w, h);
-  return jsQR(d.data, w, h, { inversionAttempts: 'attemptBoth' });
+async function tryQR(context, w, h) {
+  try {
+    const imageData = context.getImageData(0, 0, w, h);
+    const results = await ZXingWASM.readBarcodes(imageData, {
+      formats: ['QRCode'],
+      tryHarder: true,
+    });
+    return results && results.length > 0 ? results[0].text : null;
+  } catch(e) { return null; }
 }
 
 async function onQRFound(url) {
