@@ -31,11 +31,8 @@
   .sheets-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
 
   .cam-section { padding: 16px 20px 0; }
-
-  /* Estilo do html5-qrcode */
   #qr-reader { width: 100% !important; border: 1px solid var(--border) !important; border-radius: 12px !important; overflow: hidden !important; background: #000 !important; }
   #qr-reader__scan_region { background: #000 !important; }
-  #qr-reader__scan_region video { border-radius: 0 !important; }
   #qr-reader__dashboard { padding: 12px !important; background: var(--surface) !important; }
   #qr-reader__dashboard_section_csr button {
     background: var(--green) !important; color: #000 !important;
@@ -49,11 +46,7 @@
     border: 1px solid var(--border) !important; border-radius: 6px !important;
     padding: 8px 10px !important; width: 100% !important;
     margin-bottom: 8px !important; font-size: 13px !important;
-    font-family: 'Geist', sans-serif !important;
   }
-  #qr-reader__status_span { color: var(--muted) !important; font-size: 11px !important; }
-  #qr-reader__header_message { display: none !important; }
-  #qr-reader__dashboard_section_fsr { display: none !important; }
 
   .status-bar {
     margin: 12px 20px 0; padding: 10px 14px; border-radius: 8px;
@@ -62,110 +55,67 @@
     display: flex; align-items: center; gap: 8px;
     font-family: 'Geist Mono', monospace;
   }
-  .status-bar.ok    { border-color: var(--green-dim); background: var(--green-bg); color: var(--green); }
+  .status-bar.ok { border-color: var(--green-dim); background: var(--green-bg); color: var(--green); }
   .status-bar.error { border-color: #7f1d1d; background: var(--red-bg); color: var(--red); }
-  .status-bar.info  { border-color: #1e3a5f; background: #0f172a; color: var(--blue); }
+  .status-bar.info { border-color: #1e3a5f; background: #0f172a; color: var(--blue); }
 
-  .spinner { width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+  .spinner { width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
   .preview-card { margin: 12px 20px 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; display: none; }
   .preview-card.show { display: block; }
   .preview-header { padding: 10px 14px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; justify-content: space-between; }
-  .ok-tag { color: var(--green); }
   .field-row { display: flex; padding: 10px 14px; border-bottom: 1px solid var(--border); gap: 12px; background: var(--surface); }
-  .field-row:last-child { border-bottom: none; }
-  .field-name { font-size: 11px; color: var(--muted); width: 100px; flex-shrink: 0; font-family: 'Geist Mono', monospace; padding-top: 1px; }
-  .field-val { font-size: 13px; font-weight: 500; color: var(--text); word-break: break-all; line-height: 1.4; flex: 1; }
-  .field-val.mono { font-family: 'Geist Mono', monospace; font-size: 11px; }
+  .field-name { font-size: 11px; color: var(--muted); width: 100px; flex-shrink: 0; font-family: 'Geist Mono', monospace; }
+  .field-val { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; word-break: break-all; }
   .field-val.hi { color: var(--green); font-weight: 700; }
 
   .send-row { padding: 12px 20px 0; display: flex; gap: 10px; }
-  .btn { flex: 1; padding: 13px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: 'Geist', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-  .btn:hover:not(:disabled) { background: var(--surface2); }
-  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn { flex: 1; padding: 13px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: 'Geist', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
   .btn.primary { background: var(--green); color: #000; border-color: var(--green); font-weight: 700; flex: 2; }
-  .btn.primary:hover:not(:disabled) { background: #16a34a; }
   .btn.danger { color: var(--red); border-color: #7f1d1d; }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-  .history-section { margin: 20px 20px 0; display: none; }
-  .history-section.show { display: block; }
-  .history-title { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--faint); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
-  .history-list { display: flex; flex-direction: column; gap: 6px; }
-  .history-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
-  .history-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--green-bg); border: 1px solid var(--green-dim); display: grid; place-items: center; flex-shrink: 0; font-size: 13px; }
-  .history-info { flex: 1; overflow: hidden; }
-  .history-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .history-meta { font-size: 11px; color: var(--muted); font-family: 'Geist Mono', monospace; }
-  .history-status { font-size: 10px; padding: 3px 7px; border-radius: 4px; font-weight: 600; background: var(--green-bg); color: var(--green); border: 1px solid var(--green-dim); }
-
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(12px); background: var(--text); color: var(--bg); font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 8px; opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 100; white-space: nowrap; }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 8px; opacity: 0; transition: 0.25s; z-index: 100; }
+  .toast.show { opacity: 1; }
 </style>
 </head>
 <body>
 <div class="app">
-
   <div class="topbar">
     <div class="logo">
-      <div class="logo-mark">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5">
-          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-          <rect x="3" y="14" width="7" height="7"/><circle cx="17.5" cy="17.5" r="2" fill="#000" stroke="none"/>
-        </svg>
-      </div>
-      <div>
-        <div class="logo-text">NFS-e Scanner</div>
-        <div class="logo-sub">Contourline</div>
-      </div>
+      <div class="logo-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><circle cx="17.5" cy="17.5" r="2" fill="#000" stroke="none"/></svg></div>
+      <div><div class="logo-text">NFS-e Scanner</div><div class="logo-sub">Contourline</div></div>
     </div>
     <div class="sheets-badge"><div class="sheets-dot"></div>Google Sheets</div>
   </div>
 
-  <div class="cam-section">
-    <div id="qr-reader"></div>
-  </div>
-
-  <div class="status-bar" id="statusBar">
-    <span>Clique em "Iniciar câmera" para começar</span>
-  </div>
+  <div class="cam-section"><div id="qr-reader"></div></div>
+  <div class="status-bar" id="statusBar"><span>Inicie a câmera para escanear</span></div>
 
   <div class="preview-card" id="previewCard">
-    <div class="preview-header">
-      <span>Dados extraídos</span>
-      <span class="ok-tag">✓ Leitura OK</span>
-    </div>
+    <div class="preview-header"><span>Dados extraídos</span><span style="color:var(--green)">✓ LEITURA OK</span></div>
     <div id="previewBody"></div>
   </div>
 
   <div class="send-row" id="sendRow" style="display:none;">
     <button class="btn danger" onclick="resetScan()">Cancelar</button>
-    <button class="btn primary" id="sendBtn" onclick="sendToSheets()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 2 11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-      Enviar para Sheets
-    </button>
+    <button class="btn primary" id="sendBtn" onclick="sendToSheets()">Enviar para Sheets</button>
   </div>
-
-  <div class="history-section" id="historySection">
-    <div class="history-title">
-      <span>Histórico da sessão</span>
-      <span id="historyCount" style="color:var(--faint);font-size:11px;font-weight:400;"></span>
-    </div>
-    <div class="history-list" id="historyList"></div>
-  </div>
-
 </div>
 <div class="toast" id="toast"></div>
 
 <script>
 const SHEET_ID   = '1330tKi9srogL71KVphJlTYuh-CUFjRX71LBuEZf8CIY';
 const SHEET_NAME = 'NFS-e';
+
+// AQUI ESTÁ SUA CHAVE PRIVADA INSERIDA
 const SERVICE_ACCOUNT = {
   client_email: 'aplicativo-nfe@i-informatics-477817-j5.iam.gserviceaccount.com',
   private_key: "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDDjiZ/DbQ2brYe\nL8CuYRpPiGWKKmwjfYpip/NJBemTGu8HNigwu6IYmnalNnAeTkuudFYajjXyqIn0\nkU+tAPqa0Zvic1naScPUSZkxFRkZ22EkV0xHy0K8v3222YqWk+r1gvG8LVd4P4ak\n4l0AA6P3sfme+5mAHL3ival3AjbJS2pd5NMh+kIbfBBJgyqq7cFNiqCrICscmSZV\nwnzcuulbOU4odTyTZGp7Drt5K0zEND8vkM7aeMxqnfev+uWHsXlBP8bYtVvaTLCb\ns3s4V0fWqcfyOtMMCT22SBzuxmDVvoJTsm+dfDl02xqVVSMcX1udQlykIH8z8Q2a\nrLAd/tmbAgMBAAECggEAQYIi/zjV/84CkAYrI78/kxj7+tbPNuxdKUNdyj6Cylah\nb+cCe6C/YkKMMDgWQvCzhZNPLMIq7EjtPdJXwHqteKNy9t7xYKCJS1oESV7p87F7\nzzK3SO2cQ6JaOKCTPnH6qZfd5s3BmXSeZCm4QcL2cIlcN5fNCg+WxJgIZueE9tUI\ncod/SaZ7HVeIQq4KHZ1B1QGRDzKcGP38On4feHvO+sDOyeS8uqndgCy4M0cJFvzw\nW5hA6PstVhyH3h2qwmM/qINJP2CYj6Y5jLAwV9pivVUNTDRUS/CXuJqv07bl+noG\nOAmu+dn4owCU0wTPtUa/rLtAU1V1Y5vvjmnfjlFA0QKBgQDt6Un8nrvU5R3H8hZR\nJeAzzKnyhFfSn64D/SxUuJ2mXpLtGSAqvMqNcCfI2HTG8EKZlC6zNf/rxkWt6oIe\nufhjq9ihEPO5jLiiVx78BHIn/fU0KJ47y2Uu4hzt20AgtvxScXjYns3tn7x0VG81\nHIxhfgYMXYuoIY+z1tJsZxzPnQKBgQDSbHFl1UqjXe/0CCbmNe4xGcHNRtp/fHN7\nDi/YiaobPZRVag71QMzXoaxKMzREmPCyxwK3mim+dgGyGqutW/Xt9pKTMm5CqKO8\ns7XDvnxzXTJ7kLAyx8dM93MISbcQ4MsWdmktWppltT+U1kbMdkTGWrfJ3fyuqqF+\nlep5Kj60lwKBgBf5Ridap3rQi6u2TWFn+6u8l/OEOoVS6eok/O6cm+ZD6XJS8dbc\np1yRTLEEft/9Hfjz4bDVZDCSDjt0QiBuhQUmL/IrDyRHdeOF++1RVV+KS8cxwKAt\n4shSqK+fRFsHlW2JWbAacI3dZtQiHgKwGcVJObrNQmFy4FQy9YlO6qxRAoGAALC4\nYoQjnYuWWO+Z6RFuOZ0DBMBhwR9QZavzPjudYj9+eBVD/Uv8IAz4urmWR09VItEC\nUkXgMy7B7Kqnu4bctK4lZvQ4ZmGVP+46/2xljh9VJhCgc1oybi81omZTgmuqXuV+\njNaKQSEqFzvouYz9xsTPa4sd5BjNNNQbE9CuqfsCgYEA29uURNvbIqhw0irsSmpg\nWj1dk4Flx4lUCVlHIV+iEN1EnembUsAQ6TNy2QDfRvvZ9t6X5NQaOuMEB3kAkJUN\n3J2bOXUtPVAxL1B1OzMrlh6Z1egZbt99lXwp776C2QlzI7wBm8gGL1FVDYgURYgW\n/I2KhSM8nDFCQCxHzEmBOac=\n-----END PRIVATE KEY-----\n"
 };
 
-let currentData = null, sessionHistory = [], html5QrCode = null, active = false;
+let currentData = null, html5QrCode = null, active = false;
 
 window.addEventListener('load', () => {
   html5QrCode = new Html5Qrcode('qr-reader');
@@ -173,187 +123,114 @@ window.addEventListener('load', () => {
 });
 
 function startScanner() {
-  if (active) return;
-  html5QrCode.start(
-    { facingMode: 'environment' },
-    {
-      fps: 15,
-      qrbox: (w, h) => {
-        const size = Math.min(w, h) * 0.75;
-        return { width: size, height: size };
-      },
-      aspectRatio: 1.333,
-      experimentalFeatures: { useBarCodeDetectorIfSupported: true }
-    },
-    onQRFound,
-    () => {}
-  ).then(() => {
-    active = true;
-    setStatus('Aponte para o QR code da nota fiscal', 'info');
-  }).catch(err => {
-    setStatus('Erro câmera: ' + err, 'error');
-  });
+  html5QrCode.start({ facingMode: 'environment' }, { fps: 15, qrbox: 250 }, onQRFound).then(() => { active = true; setStatus('Aponte para o QR Code', 'info'); });
 }
 
 async function onQRFound(text) {
   if (!active) return;
   active = false;
-  try { await html5QrCode.stop(); } catch(_) {}
-
-  setStatus('QR detectado! Buscando dados...', 'info');
-
+  try { await html5QrCode.stop(); } catch(e) {}
+  setStatus('Processando nota...', 'info');
   try {
     const data = await fetchNFSe(text);
     currentData = data;
     showPreview(data);
-    setStatus('Confirme os dados e envie para o Sheets', 'ok');
+    setStatus('Leitura concluída', 'ok');
   } catch(e) {
-    setStatus('Erro: ' + e.message, 'error');
+    setStatus('Erro na leitura: ' + e.message, 'error');
     startScanner();
   }
 }
 
 async function fetchNFSe(url) {
-  const proxies = [
-    u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-    u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-    u => `https://thingproxy.freeboard.io/fetch/${u}`,
-  ];
-  for (const p of proxies) {
-    try {
-      const r = await fetch(p(url), { signal: AbortSignal.timeout(8000) });
-      if (!r.ok) continue;
-      const html = await r.text();
-      if (html.length > 200) return parseNFSe(html, url);
-    } catch(_) {}
-  }
-  throw new Error('Não foi possível buscar a nota.');
-}
-
-function parseNFSe(html, url) {
-  const doc  = new DOMParser().parseFromString(html, 'text/html');
-  const text = doc.body ? doc.body.innerText : html;
-  const ex   = re => { const m = text.match(re); return m ? m[1].trim() : '—'; };
+  const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+  const r = await fetch(proxyUrl);
+  const html = await r.text();
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const text = doc.body.innerText;
+  const ex = re => { const m = text.match(re); return m ? m[1].trim() : '—'; };
   return {
-    numero:    ex(/Número da NFS-e\s*\n\s*(\d+)/),
-    data_em:   ex(/Data e Hora de Emissão da NFS-e\s*\n\s*([\d\/]+ [\d:]+)/),
+    numero: ex(/Número da NFS-e\s*\n\s*(\d+)/),
+    data_em: ex(/Data e Hora de Emissão da NFS-e\s*\n\s*([\d\/]+ [\d:]+)/),
     prestador: ex(/Nome \/ Nome Empresarial\s*\n\s*([^\n]+)/),
-    cnpj:      ex(/CNPJ \/ CPF \/ NIF\s*\n\s*([\d.\/\-]+)/),
-    valor:     ex(/Valor Líquido da NFS-e\s*\n\s*(R\$\s*[\d.,]+)/),
+    cnpj: ex(/CNPJ \/ CPF \/ NIF\s*\n\s*([\d.\/\-]+)/),
+    valor: ex(/Valor Líquido da NFS-e\s*\n\s*(R\$\s*[\d.,]+)/),
     descricao: ex(/Descrição do Serviço\s*\n\s*([^\n]{5,})/),
-    chave:     ex(/Chave de Acesso da NFS-e\s*\n\s*([A-Za-z0-9]+)/),
-    url
+    chave: ex(/Chave de Acesso da NFS-e\s*\n\s*([A-Za-z0-9]+)/)
   };
 }
 
 function showPreview(d) {
-  document.getElementById('previewBody').innerHTML = [
-    { name: 'Nº NFS-e',   val: d.numero,    cls: 'hi' },
-    { name: 'Data',       val: d.data_em,   cls: '' },
-    { name: 'Prestador',  val: d.prestador, cls: '' },
-    { name: 'CNPJ',       val: d.cnpj,      cls: 'mono' },
-    { name: 'Valor',      val: d.valor,     cls: 'hi' },
-    { name: 'Serviço',    val: d.descricao, cls: '' },
-    { name: 'Chave',      val: d.chave,     cls: 'mono' },
-  ].map(f => `<div class="field-row"><div class="field-name">${f.name}</div><div class="field-val ${f.cls}">${f.val}</div></div>`).join('');
-
+  document.getElementById('previewBody').innerHTML = `
+    <div class="field-row"><div class="field-name">Nº NFS-e</div><div class="field-val hi">${d.numero}</div></div>
+    <div class="field-row"><div class="field-name">Data</div><div class="field-val">${d.data_em}</div></div>
+    <div class="field-row"><div class="field-name">Prestador</div><div class="field-val">${d.prestador}</div></div>
+    <div class="field-row"><div class="field-name">CNPJ</div><div class="field-val">${d.cnpj}</div></div>
+    <div class="field-row"><div class="field-name">Valor</div><div class="field-val hi">${d.valor}</div></div>
+    <div class="field-row"><div class="field-name">Chave</div><div class="field-val" style="font-size:10px">${d.chave}</div></div>`;
   document.getElementById('previewCard').classList.add('show');
   document.getElementById('sendRow').style.display = 'flex';
 }
 
 function resetScan() {
-  currentData = null;
   document.getElementById('previewCard').classList.remove('show');
   document.getElementById('sendRow').style.display = 'none';
   startScanner();
 }
 
-async function sendToSheets() {
-  const btn = document.getElementById('sendBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner"></div> Enviando...';
-  setStatus('Autenticando...', 'info');
-  try {
-    const token = await getAccessToken();
-    setStatus('Gravando na planilha...', 'info');
-    await appendRow(token, currentData);
-    setStatus('✓ Nota salva no Google Sheets!', 'ok');
-    showToast('✓ Enviado!');
-    sessionHistory.unshift(currentData);
-    renderHistory();
-    document.getElementById('previewCard').classList.remove('show');
-    document.getElementById('sendRow').style.display = 'none';
-    currentData = null;
-    setTimeout(startScanner, 1500);
-  } catch(e) {
-    setStatus('Erro: ' + e.message, 'error');
-    showToast('Falha ao enviar');
-  }
-  btn.disabled = false;
-  btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 2 11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar para Sheets`;
-}
-
 async function getAccessToken() {
   const now = Math.floor(Date.now() / 1000);
-  const jwt = KJUR.jws.JWS.sign('RS256',
-    JSON.stringify({ alg: 'RS256', typ: 'JWT' }),
-    JSON.stringify({ iss: SERVICE_ACCOUNT.client_email, scope: 'https://www.googleapis.com/auth/spreadsheets', aud: 'https://oauth2.googleapis.com/token', iat: now, exp: now + 3600 }),
-    SERVICE_ACCOUNT.private_key
-  );
+  const header = { alg: 'RS256', typ: 'JWT' };
+  const payload = {
+    iss: SERVICE_ACCOUNT.client_email,
+    scope: 'https://www.googleapis.com/auth/spreadsheets',
+    aud: 'https://oauth2.googleapis.com/token',
+    iat: now,
+    exp: now + 3600
+  };
+  const jwt = KJUR.jws.JWS.sign('RS256', JSON.stringify(header), JSON.stringify(payload), SERVICE_ACCOUNT.private_key);
   const r = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`
   });
   const d = await r.json();
-  if (!d.access_token) throw new Error(d.error_description || 'Auth falhou');
+  if (!d.access_token) throw new Error(d.error_description || 'Erro de Autenticação');
   return d.access_token;
 }
 
-async function appendRow(token, d) {
-  // Cria cabeçalho se necessário
-  const check = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME+'!A1')}`, { headers: { Authorization: 'Bearer ' + token } });
-  const cd = await check.json();
-  if (!cd.values || !cd.values.length) {
-    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME+'!A1')}?valueInputOption=USER_ENTERED`, {
-      method: 'PUT', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ values: [['Nº NFS-e','Data Emissão','Prestador','CNPJ','Valor','Descrição','Chave de Acesso','Registrado em']] })
+async function sendToSheets() {
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+  try {
+    const token = await getAccessToken();
+    const body = { values: [[currentData.numero, currentData.data_em, currentData.prestador, currentData.cnpj, currentData.valor, currentData.descricao, currentData.chave, new Date().toLocaleString()]] };
+    const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}!A:H:append?valueInputOption=USER_ENTERED`, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
     });
+    if (!r.ok) throw new Error('Erro ao salvar na planilha');
+    showToast('✓ Salvo com sucesso!');
+    resetScan();
+  } catch(e) {
+    setStatus('Erro: ' + e.message, 'error');
   }
-  const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME+'!A:H')}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`, {
-    method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ values: [[d.numero, d.data_em, d.prestador, d.cnpj, d.valor, d.descricao, d.chave, new Date().toLocaleString('pt-BR')]] })
-  });
-  if (!r.ok) { const e = await r.json(); throw new Error(e.error?.message || 'Falha ao gravar'); }
-}
-
-function renderHistory() {
-  if (!sessionHistory.length) return;
-  document.getElementById('historySection').classList.add('show');
-  document.getElementById('historyCount').textContent = sessionHistory.length + ' nota' + (sessionHistory.length > 1 ? 's' : '');
-  document.getElementById('historyList').innerHTML = sessionHistory.map(h => `
-    <div class="history-item">
-      <div class="history-icon">🧾</div>
-      <div class="history-info">
-        <div class="history-name">${h.prestador}</div>
-        <div class="history-meta">Nº ${h.numero} · ${h.valor}</div>
-      </div>
-      <div class="history-status">Enviado</div>
-    </div>`).join('');
+  btn.disabled = false;
+  btn.textContent = 'Enviar para Sheets';
 }
 
 function setStatus(msg, type) {
   const el = document.getElementById('statusBar');
-  const loading = type === 'info' && (msg.includes('Buscando') || msg.includes('Gravando') || msg.includes('Autenticando'));
-  el.className = 'status-bar' + (type ? ' ' + type : '');
-  el.innerHTML = (loading ? '<div class="spinner"></div>' : '') + `<span>${msg}</span>`;
+  el.className = 'status-bar ' + type;
+  el.innerHTML = `<span>${msg}</span>`;
 }
 
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 </script>
 </body>
