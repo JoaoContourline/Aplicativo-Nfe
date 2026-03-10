@@ -24,16 +24,22 @@
   <div id="debug-console">--- SISTEMA PRONTO ---</div>
 
 <script>
-// AQUI VAI A SUA URL QUE VOCÊ ME MANDOU
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzlW0T2YW-M1V3HAbZ5yt3q0AVhcA9uGeR3QIQ-uvzGaTxd0Uud2b0vbjpGdbvIkRUvkA/exec';
 
 function log(m) { const c = document.getElementById('debug-console'); c.innerHTML += `\n> ${m}`; c.scrollTop = c.scrollHeight; }
 
+// Tenta iniciar a câmera com suporte a foco
 const html5QrCode = new Html5Qrcode("qr-reader");
-html5QrCode.start({ facingMode: "environment" }, { fps: 20, qrbox: 200 }, (text) => {
-  html5QrCode.stop();
-  fetchData(text);
-});
+html5QrCode.start(
+  { facingMode: "environment" }, 
+  { fps: 20, qrbox: 250 }, 
+  (text) => {
+    html5QrCode.stop().then(() => {
+        log("QR Lido!");
+        fetchData(text);
+    });
+  }
+).catch(err => log("Erro câmera: " + err));
 
 async function fetchData(url) {
   try {
@@ -53,16 +59,16 @@ async function fetchData(url) {
 }
 
 async function sendToSheets() {
-  log("Enviando via Script...");
+  log("Enviando...");
   try {
-    const r = await fetch(SCRIPT_URL, {
+    // Usamos fetch simples para o script
+    await fetch(SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors', // Isso ignora o bloqueio de navegador
+      mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(window.nota)
     });
-    log("Enviado com sucesso!");
-    alert("Nota gravada na planilha!");
+    alert("Enviado com sucesso!");
     location.reload();
   } catch(e) { log("Erro: " + e.message); }
 }
