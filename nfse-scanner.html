@@ -151,7 +151,7 @@
   /* scan frame corners */
   .frame {
     position: absolute;
-    inset: 20%;
+    inset: 5%;
     pointer-events: none;
     display: none;
   }
@@ -656,7 +656,7 @@ function scanLoop() {
     const vw = video.videoWidth, vh = video.videoHeight;
     const isFront = video.style.transform === 'scaleX(-1)';
 
-    function drawMirrored(targetCtx, tw, th, sx, sy, sw, sh) {
+    function draw(targetCtx, tw, th, sx, sy, sw, sh) {
       if (isFront) {
         targetCtx.save(); targetCtx.translate(tw, 0); targetCtx.scale(-1, 1);
         targetCtx.drawImage(video, sx, sy, sw, sh, 0, 0, tw, th);
@@ -666,36 +666,37 @@ function scanLoop() {
       }
     }
 
-    // Pass 1 — frame completo
+    // Pass 1 — frame completo (detecta QR em qualquer posição)
     canvas.width = vw; canvas.height = vh;
-    drawMirrored(ctx, vw, vh, 0, 0, vw, vh);
+    draw(ctx, vw, vh, 0, 0, vw, vh);
     let code = tryQR(ctx, vw, vh);
 
-    // Pass 2 — 2x zoom centro
+    // Passes 2-9: varredura em grade 3x3 com zoom 2x (cobre qualquer posição)
     if (!code) {
-      const cs = Math.min(vw, vh) * 0.55;
-      const zw = Math.round(cs * 2), zh = Math.round(cs * 2);
+      const tileW = vw / 3, tileH = vh / 3;
+      const zw = Math.round(tileW * 2), zh = Math.round(tileH * 2);
       offscreen.width = zw; offscreen.height = zh;
-      drawMirrored(offCtx, zw, zh, (vw-cs)/2, (vh-cs)/2, cs, cs);
-      code = tryQR(offCtx, zw, zh);
+      outer: for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 3; col++) {
+          draw(offCtx, zw, zh, col * tileW, row * tileH, tileW, tileH);
+          code = tryQR(offCtx, zw, zh);
+          if (code) break outer;
+        }
+      }
     }
 
-    // Pass 3 — 3x zoom centro
+    // Pass 10-18: grade 3x3 com zoom 4x (QR minúsculo em qualquer posição)
     if (!code) {
-      const cs = Math.min(vw, vh) * 0.35;
-      const zw = Math.round(cs * 3), zh = Math.round(cs * 3);
+      const tileW = vw / 3, tileH = vh / 3;
+      const zw = Math.round(tileW * 4), zh = Math.round(tileH * 4);
       offscreen.width = zw; offscreen.height = zh;
-      drawMirrored(offCtx, zw, zh, (vw-cs)/2, (vh-cs)/2, cs, cs);
-      code = tryQR(offCtx, zw, zh);
-    }
-
-    // Pass 4 — 4x zoom centro (QR minúsculo)
-    if (!code) {
-      const cs = Math.min(vw, vh) * 0.22;
-      const zw = Math.round(cs * 4), zh = Math.round(cs * 4);
-      offscreen.width = zw; offscreen.height = zh;
-      drawMirrored(offCtx, zw, zh, (vw-cs)/2, (vh-cs)/2, cs, cs);
-      code = tryQR(offCtx, zw, zh);
+      outer2: for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 3; col++) {
+          draw(offCtx, zw, zh, col * tileW, row * tileH, tileW, tileH);
+          code = tryQR(offCtx, zw, zh);
+          if (code) break outer2;
+        }
+      }
     }
 
     if (code) {
