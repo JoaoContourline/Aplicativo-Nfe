@@ -3,34 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>NFS-e Scanner V4</title>
+<title>NFS-e Pro Scanner</title>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.9.0/jsrsasign-all-min.js"></script>
 <style>
-  :root { --bg: #09090b; --surface: #18181b; --border: #3f3f46; --text: #fafafa; --green: #22c55e; --red: #ef4444; }
-  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; padding: 15px; margin: 0; }
-  #qr-reader { width: 100%; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: #000; }
-  .status { margin: 10px 0; padding: 10px; border-radius: 8px; font-size: 13px; background: var(--surface); border: 1px solid var(--border); color: #a1a1aa; }
-  .preview { background: var(--surface); padding: 15px; border-radius: 10px; border: 1px solid var(--border); margin-top: 15px; display: none; }
-  .btn { width: 100%; padding: 15px; background: var(--green); color: #000; border: none; border-radius: 8px; font-weight: 800; margin-top: 10px; cursor: pointer; }
-  #debug-console { margin-top: 20px; background: #000; color: #4ade80; font-family: monospace; font-size: 10px; padding: 10px; height: 160px; overflow-y: auto; border-radius: 8px; border: 1px solid #333; white-space: pre-wrap; }
+  :root { --bg: #09090b; --green: #22c55e; }
+  body { background: var(--bg); color: #fff; font-family: sans-serif; padding: 15px; margin: 0; }
+  /* Ajuste para a câmera ocupar a tela toda com foco melhor */
+  #qr-reader { width: 100%; border: 2px solid var(--green); border-radius: 16px; overflow: hidden; background: #000; }
+  .btn { width: 100%; padding: 18px; background: var(--green); border: none; border-radius: 12px; font-weight: 800; margin-top: 15px; }
+  #debug-console { margin-top: 15px; background: #000; color: #4ade80; font-family: monospace; font-size: 10px; padding: 10px; height: 120px; overflow-y: auto; border: 1px solid #333; }
 </style>
 </head>
 <body>
 
-  <h3 style="margin-bottom:10px;">Scanner NFS-e</h3>
+  <h3>Pro Scanner (Foco Otimizado)</h3>
   <div id="qr-reader"></div>
-  <div id="status" class="status">Aguardando leitura do QR Code...</div>
+  <div id="status" style="margin: 10px 0; font-size: 12px;">Ajustando foco...</div>
 
-  <div class="preview" id="previewCard">
-    <div id="previewBody" style="font-size: 14px; line-height: 1.6;"></div>
-    <button class="btn" id="sendBtn" onclick="sendToSheets()">ENVIAR AO SHEETS</button>
+  <div id="preview" style="display:none; background:#18181b; padding:15px; border-radius:12px; margin-top:10px;">
+    <div id="data"></div>
+    <button class="btn" id="sendBtn" onclick="sendToSheets()">ENVIAR NOTA</button>
   </div>
 
   <div id="debug-console">--- SISTEMA PRONTO ---</div>
 
 <script>
-// CONFIGURAÇÕES FIXAS
 const SHEET_ID = '1330tKi9srogL71KVphJlTYuh-CUFjRX71LBuEZf8CIY';
 const SERVICE_ACCOUNT = {
   email: 'aplicativo-nfe@i-informatics-477817-j5.iam.gserviceaccount.com',
@@ -64,125 +62,73 @@ Wj1dk4Flx4lUCVlHIV+iEN1EnembUsAQ6TNy2QDfRvvZ9t6X5NQaOuMEB3kAkJUN
 -----END PRIVATE KEY-----`
 };
 
-function log(msg) {
-  const c = document.getElementById('debug-console');
-  c.innerHTML += `\n> ${msg}`;
-  c.scrollTop = c.scrollHeight;
-}
-
-let currentData = null;
 const html5QrCode = new Html5Qrcode("qr-reader");
 
-// INICIALIZAÇÃO DA CÂMERA
-html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, async (decodedText) => {
-  log("QR Detectado!");
-  document.getElementById('status').innerText = "Processando dados da nota...";
-  try {
-    await html5QrCode.stop();
-    await processNFSe(decodedText);
-  } catch (e) {
-    log("Erro ao parar câmera: " + e.message);
+// Configuração otimizada para foco
+const qrConfig = { 
+  fps: 20, 
+  qrbox: {width: 200, height: 200},
+  aspectRatio: 1.0 
+};
+
+html5QrCode.start({ facingMode: "environment" }, {
+  fps: 20,
+  qrbox: 200,
+  // Aumenta a resolução para ler códigos minúsculos
+  videoConstraints: {
+    facingMode: "environment",
+    width: { ideal: 1280 },
+    height: { ideal: 720 }
   }
-}).catch(err => log("Erro Câmera: " + err));
+}, (text) => {
+  log("QR Detectado!");
+  html5QrCode.stop();
+  fetchData(text);
+});
 
-async function processNFSe(url) {
+function log(m) { document.getElementById('debug-console').innerHTML += `\n> ${m}`; }
+
+async function fetchData(url) {
   try {
-    log("Buscando conteúdo da nota...");
-    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-    const response = await fetch(proxyUrl);
-    const html = await response.text();
-    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const r = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+    const h = await r.text();
+    const doc = new DOMParser().parseFromString(h, 'text/html');
     const b = doc.body.innerText;
-
-    // Extrator de dados (Regex)
-    currentData = {
-      numero: b.match(/Número da NFS-e\s*\n\s*(\d+)/)?.[1] || "—",
-      data: b.match(/Data e Hora de Emissão da NFS-e\s*\n\s*([\d\/]+)/)?.[1] || "—",
-      prestador: b.match(/Nome \/ Nome Empresarial\s*\n\s*([^\n]+)/)?.[1] || "—",
-      valor: b.match(/Valor Líquido da NFS-e\s*\n\s*(R\$\s*[\d.,]+)/)?.[1] || "—",
-      chave: b.match(/Chave de Acesso da NFS-e\s*\n\s*([A-Za-z0-9]+)/)?.[1] || "—"
+    
+    // Armazena dados globais
+    window.nota = {
+      n: b.match(/Número da NFS-e\s*\n\s*(\d+)/)?.[1] || "—",
+      v: b.match(/Valor Líquido da NFS-e\s*\n\s*(R\$\s*[\d.,]+)/)?.[1] || "—",
+      p: b.match(/Nome \/ Nome Empresarial\s*\n\s*([^\n]+)/)?.[1] || "—",
+      c: b.match(/Chave de Acesso da NFS-e\s*\n\s*([A-Za-z0-9]+)/)?.[1] || "—"
     };
 
-    if(currentData.numero === "—") {
-        log("Aviso: Alguns dados não foram encontrados no texto.");
-    }
-
-    document.getElementById('previewBody').innerHTML = `
-      <b>Prestador:</b> ${currentData.prestador}<br>
-      <b>Nº Nota:</b> ${currentData.numero}<br>
-      <b>Valor:</b> <span style="color:#22c55e">${currentData.valor}</span>
-    `;
-    document.getElementById('previewCard').style.display = 'block';
-    document.getElementById('status').innerText = "Leitura concluída!";
-    log("Dados prontos para envio.");
-  } catch (e) {
-    log("Erro no processamento: " + e.message);
-    document.getElementById('status').innerText = "Erro ao ler dados da URL.";
-  }
+    document.getElementById('data').innerHTML = `<b>Nota:</b> ${window.nota.n}<br><b>Valor:</b> ${window.nota.v}`;
+    document.getElementById('preview').style.display = 'block';
+  } catch(e) { log("Erro de leitura: " + e.message); }
 }
 
 async function sendToSheets() {
-  const btn = document.getElementById('sendBtn');
-  btn.disabled = true;
-  btn.innerText = "AUTENTICANDO...";
-  log("Iniciando assinatura Google JWT...");
-
-  try {
-    const now = Math.floor(Date.now() / 1000);
-    const sHeader = JSON.stringify({alg: "RS256", typ: "JWT"});
-    const sPayload = JSON.stringify({
-      iss: SERVICE_ACCOUNT.email,
-      scope: "https://www.googleapis.com/auth/spreadsheets",
-      aud: "https://oauth2.googleapis.com/token",
-      iat: now - 30, // Margem para relógio dessincronizado
-      exp: now + 3600
-    });
-
-    // Assinatura com a biblioteca jsrsasign
-    const sJWT = KJUR.jws.JWS.sign(null, sHeader, sPayload, SERVICE_ACCOUNT.key);
+  log("Enviando...");
+  const now = Math.floor(Date.now() / 1000);
+  const sJWT = KJUR.jws.JWS.sign(null, JSON.stringify({alg: "RS256", typ: "JWT"}), 
+    JSON.stringify({iss: SERVICE_ACCOUNT.email, scope: "https://www.googleapis.com/auth/spreadsheets", aud: "https://oauth2.googleapis.com/token", iat: now-60, exp: now+3600}), 
+    SERVICE_ACCOUNT.key);
     
-    log("JWT assinado. Buscando Token...");
-    const r = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${sJWT}`
-    });
-
-    const res = await r.json();
-    if(res.error) {
-        log("ERRO GOOGLE: " + res.error_description);
-        btn.disabled = false;
-        btn.innerText = "TENTAR NOVAMENTE";
-        return;
-    }
-
-    log("Token OK! Gravando na planilha...");
-    const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/NFS-e!A:H:append?valueInputOption=USER_ENTERED`;
-    const appendR = await fetch(sheetUrl, {
+  const r = await fetch('https://oauth2.googleapis.com/token', {method: 'POST', body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${sJWT}`});
+  const res = await r.json();
+  
+  if(res.access_token) {
+    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/NFS-e!A:H:append?valueInputOption=USER_ENTERED`, {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + res.access_token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        values: [[
-          currentData.numero, currentData.data, currentData.prestador, 
-          "", currentData.valor, "", currentData.chave, new Date().toLocaleString()
-        ]]
-      })
+      body: JSON.stringify({ values: [[window.nota.n, "", window.nota.p, "", window.nota.v, "", window.nota.c, new Date().toLocaleString()]] })
     });
-
-    if(appendR.ok) {
-        log("SUCESSO: Nota salva!");
-        alert("✅ Gravado com sucesso na planilha!");
-        location.reload();
-    } else {
-        const errData = await appendR.json();
-        log("Erro Sheets: " + errData.error.message);
-    }
-
-  } catch (e) {
-    log("Erro crítico: " + e.message);
+    alert("Enviado!");
+    location.reload();
+  } else {
+    log("Erro: " + res.error_description);
   }
-  btn.disabled = false;
-  btn.innerText = "ENVIAR AO SHEETS";
 }
 </script>
 </body>
