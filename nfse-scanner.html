@@ -180,7 +180,7 @@ window.fazerLogin = function() {
   const erro  = document.getElementById('loginErro');
   if (!nome)           { erro.style.display='block'; erro.textContent='Selecione seu nome'; return; }
   if (senha !== SENHA) { erro.style.display='block'; erro.textContent='Senha incorreta'; return; }
-  sessionStorage.setItem('nfse_usuario', nome);
+  localStorage.setItem('nfse_usuario', nome);
   mostrarApp(nome);
 };
 
@@ -196,7 +196,7 @@ function mostrarApp(nome) {
   setStatus(`Olá, ${nome}! Ligue a câmera para começar.`, 'info');
 }
 
-const salvo = sessionStorage.getItem('nfse_usuario');
+const salvo = localStorage.getItem('nfse_usuario');
 if (salvo) mostrarApp(salvo);
 
 document.getElementById('inputSenha').addEventListener('keydown', e => { if (e.key === 'Enter') window.fazerLogin(); });
