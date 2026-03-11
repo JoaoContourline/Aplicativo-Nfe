@@ -180,7 +180,7 @@ window.fazerLogin = function() {
   const erro  = document.getElementById('loginErro');
   if (!nome)           { erro.style.display='block'; erro.textContent='Selecione seu nome'; return; }
   if (senha !== SENHA) { erro.style.display='block'; erro.textContent='Senha incorreta'; return; }
-  localStorage.setItem('nfse_usuario', nome);
+  sessionStorage.setItem('nfse_usuario', nome);
   mostrarApp(nome);
 };
 
@@ -196,7 +196,7 @@ function mostrarApp(nome) {
   setStatus(`Olá, ${nome}! Ligue a câmera para começar.`, 'info');
 }
 
-const salvo = localStorage.getItem('nfse_usuario');
+const salvo = sessionStorage.getItem('nfse_usuario');
 if (salvo) mostrarApp(salvo);
 
 document.getElementById('inputSenha').addEventListener('keydown', e => { if (e.key === 'Enter') window.fazerLogin(); });
@@ -259,10 +259,10 @@ window.startScan = async function() {
 
 // ── PROCESS QR ────────────────────────────────────────
 async function processarQR(url) {
-  setStatus('⏳ Buscando dados da nota...', 'info');
+  setStatus('⏳ Lendo dados da nota...', 'info');
   try {
-    const html = await fetchNFSe(url);
-    currentData = parseNFSe(html, url);
+    currentData = extrairDadosURL(url);
+    if (currentData.chave === '—') throw new Error('Chave não encontrada na URL.');
     mostrarResult(currentData);
     setStatus('Dados prontos — confirme e envie', 'ok');
   } catch(e) {
@@ -271,39 +271,25 @@ async function processarQR(url) {
   }
 }
 
-async function fetchNFSe(url) {
-  const proxies = [
-    u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-    u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-    u => `https://thingproxy.freeboard.io/fetch/${u}`,
-  ];
-  for (const p of proxies) {
-    try {
-      const r = await fetch(p(url), { signal: AbortSignal.timeout(8000) });
-      if (!r.ok) continue;
-      const html = await r.text();
-      if (html && html.length > 200) return html;
-    } catch(e) {}
+// Extrai chave direto da URL do QR — sem proxy, sem HTML, funciona para qualquer prefeitura
+function extrairDadosURL(url) {
+  let chave = '—', numero = '—', cnpj = '—';
+  try {
+    const u = new URL(url);
+    // nfse.gov.br nacional: ?tpc=1&chave=XXXX
+    chave  = u.searchParams.get('chave')  || '—';
+    numero = u.searchParams.get('nfse')   || u.searchParams.get('numero') || '—';
+    cnpj   = u.searchParams.get('cnpj')   || '—';
+    // fallback: sequência longa na URL
+    if (chave === '—') {
+      const m = url.match(/[?&\/]([A-Za-z0-9]{30,})/);
+      if (m) chave = m[1];
+    }
+  } catch(e) {
+    const m = url.match(/chave=([A-Za-z0-9]+)/i);
+    if (m) chave = m[1];
   }
-  throw new Error('Não foi possível buscar os dados da nota.');
-}
-
-function parseNFSe(html, url) {
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  const t = doc.body ? doc.body.innerText : html;
-  const get = re => { const m = t.match(re); return m ? m[1].trim() : '—'; };
-  return {
-    numero:    get(/Número da NFS-e\s*\n\s*(\d+)/),
-    data_em:   get(/Data e Hora de Emissão da NFS-e\s*\n\s*([\d\/]+ [\d:]+)/),
-    prestador: get(/Nome \/ Nome Empresarial\s*\n\s*([^\n]+)/),
-    cnpj:      get(/CNPJ \/ CPF \/ NIF\s*\n\s*([\d.\/\-]+)/),
-    valor:     get(/Valor Líquido da NFS-e\s*\n\s*(R\$\s*[\d.,]+)/),
-    descricao: get(/Descrição do Serviço\s*\n\s*([^\n]{5,})/),
-    chave:     get(/Chave de Acesso da NFS-e\s*\n\s*([A-Za-z0-9]+)/),
-    usuario:   nomeUsuario,
-    timestamp: Date.now(),
-    url
-  };
+  return { chave, numero, cnpj, prestador: '—', data_em: '—', valor: '—', descricao: '—', usuario: nomeUsuario, timestamp: Date.now(), url };
 }
 
 function mostrarResult(d) {
