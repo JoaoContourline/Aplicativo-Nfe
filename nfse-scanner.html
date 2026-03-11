@@ -341,14 +341,12 @@ function renderHistory() {
   if (!sessionHistory.length) return;
   document.getElementById('history').classList.add('show');
   document.getElementById('histCount').textContent = sessionHistory.length + ' nota(s)';
-  document.getElementById('histList').innerHTML = sessionHistory.map(h => `
-    <div class="history-item">
-      <div class="history-info">
-        <div class="history-name">${h.prestador}</div>
-        <div class="history-meta">Nº ${h.numero} · ${h.valor}</div>
-      </div>
-      <div class="tag">✓ Enviado</div>
-    </div>`).join('');
+  document.getElementById('histList').innerHTML = sessionHistory.map(h => {
+    const ts = new Date(h.timestamp);
+    const hora = ts.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    const chaveResumida = h.chave ? h.chave.slice(0, 20) + '...' : '—';
+    return '<div class="history-item"><div class="history-info"><div class="history-name">' + hora + '</div><div class="history-meta">' + chaveResumida + '</div></div><div class="tag">✓ Enviado</div></div>';
+  }).join('');
 }
 
 function setStatus(msg, type) {
