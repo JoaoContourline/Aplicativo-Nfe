@@ -180,7 +180,7 @@ window.fazerLogin = function() {
   const erro  = document.getElementById('loginErro');
   if (!nome)           { erro.style.display='block'; erro.textContent='Selecione seu nome'; return; }
   if (senha !== SENHA) { erro.style.display='block'; erro.textContent='Senha incorreta'; return; }
-  sessionStorage.setItem('nfse_usuario', nome);
+  localStorage.setItem('nfse_usuario', nome);
   mostrarApp(nome);
 };
 
@@ -196,7 +196,7 @@ function mostrarApp(nome) {
   setStatus(`Olá, ${nome}! Ligue a câmera para começar.`, 'info');
 }
 
-const salvo = sessionStorage.getItem('nfse_usuario');
+const salvo = localStorage.getItem('nfse_usuario');
 if (salvo) mostrarApp(salvo);
 
 document.getElementById('inputSenha').addEventListener('keydown', e => { if (e.key === 'Enter') window.fazerLogin(); });
@@ -293,13 +293,11 @@ function extrairDadosURL(url) {
 }
 
 function mostrarResult(d) {
+  const hora = new Date(d.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const data = new Date(d.timestamp).toLocaleDateString('pt-BR');
   document.getElementById('resultBody').innerHTML = [
-    { name: 'Nº NFS-e',  val: d.numero,    cls: 'green' },
-    { name: 'Data',       val: d.data_em,   cls: '' },
-    { name: 'Prestador',  val: d.prestador, cls: '' },
-    { name: 'CNPJ',       val: d.cnpj,      cls: 'mono' },
-    { name: 'Valor',      val: d.valor,     cls: 'green' },
-    { name: 'Chave',      val: d.chave,     cls: 'mono' },
+    { name: 'Data/Hora do scan', val: `${data} ${hora}`, cls: '' },
+    { name: 'Chave',             val: d.chave,            cls: 'mono' },
   ].map(f => `<div class="field"><div class="field-name">${f.name}</div><div class="field-val ${f.cls}">${f.val}</div></div>`).join('');
   document.getElementById('resultCard').classList.add('show');
   document.getElementById('sendRow').classList.add('show');
@@ -324,11 +322,6 @@ window.enviar = async function() {
     const notasRef = ref(db, `notas/${currentData.usuario}`);
     await set(push(notasRef), {
       chave:     currentData.chave,
-      numero:    currentData.numero,
-      data_em:   currentData.data_em,
-      prestador: currentData.prestador,
-      cnpj:      currentData.cnpj,
-      valor:     currentData.valor,
       usuario:   currentData.usuario,
       timestamp: currentData.timestamp,
     });
