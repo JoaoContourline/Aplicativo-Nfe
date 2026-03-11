@@ -160,7 +160,7 @@ window.fazerLogin = function() {
   const erro  = document.getElementById('loginError');
   if (!nome)           { erro.style.display='block'; erro.textContent='Selecione seu nome'; return; }
   if (senha !== SENHA) { erro.style.display='block'; erro.textContent='Senha incorreta'; return; }
-  sessionStorage.setItem('nfse_usuario', nome);
+  localStorage.setItem('nfse_usuario', nome);
   mostrarPainel(nome);
 };
 
@@ -172,7 +172,7 @@ function mostrarPainel(nome) {
   iniciarListener();
 }
 
-const salvo = sessionStorage.getItem('nfse_usuario');
+const salvo = localStorage.getItem('nfse_usuario');
 if (salvo) mostrarPainel(salvo);
 
 document.getElementById('senhaInput').addEventListener('keydown', e => {
