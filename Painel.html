@@ -63,7 +63,7 @@
   .chave-text { font-family: monospace; font-size: 13px; color: var(--text); word-break: break-all; flex: 1; line-height: 1.5; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; }
   .copy-btn { padding: 10px 18px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: all 0.15s; }
   .copy-btn:hover { background: #15803d; }
-  .copy-btn.copied { background: var(--blue); }
+  .copy-btn.copied { background: #15803d; opacity: 0.85; }
 
   .new-badge { background: var(--green-bg); border: 1px solid var(--green-dim); border-radius: 4px; padding: 2px 8px; font-size: 10px; font-weight: 700; color: var(--green-text); }
 
@@ -248,7 +248,7 @@ window.copiar = function(i) {
     showToast('Chave copiada! Some em 10s');
 
     const bar = document.getElementById('bar-' + i);
-    if (bar) requestAnimationFrame(() => requestAnimationFrame(() => bar.classList.add('running')));
+    if (bar) setTimeout(() => bar.classList.add('running'), 50);
 
     setTimeout(() => {
       remove(ref(db, 'notas/' + usuarioAtual + '/' + nota.fbKey));
