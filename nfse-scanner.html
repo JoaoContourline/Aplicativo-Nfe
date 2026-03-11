@@ -11,63 +11,25 @@
     --text: #fafafa; --muted: #a1a1aa; --green: #22c55e;
     --green-bg: #052e16; --green-dim: #166534; --blue: #3b82f6; --red: #ef4444;
   }
+  body { min-height: 100vh; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 16px; gap: 12px; }
 
-  body {
-    min-height: 100vh;
-    background: var(--bg);
-    color: var(--text);
-    font-family: system-ui, sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 16px;
-    gap: 12px;
-  }
-
-  /* ── TOPBAR ── */
-  .topbar {
-    width: 100%; max-width: 480px;
-    display: flex; align-items: center; justify-content: space-between;
-    padding-bottom: 12px; border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
+  .topbar { width: 100%; max-width: 480px; display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
   .logo { display: flex; align-items: center; gap: 10px; }
   .logo-mark { width: 32px; height: 32px; background: var(--green); border-radius: 8px; display: grid; place-items: center; font-size: 16px; }
   .logo-text { font-size: 15px; font-weight: 700; }
   .logo-sub  { font-size: 11px; color: var(--muted); }
   .user-pill { font-size: 12px; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--green-dim); background: var(--green-bg); color: var(--green); display: none; }
 
-  /* ── LOGIN ── */
-  .login-card {
-    width: 100%; max-width: 480px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 10px; padding: 24px;
-    display: flex; flex-direction: column; gap: 16px;
-    flex-shrink: 0;
-  }
+  .login-card { width: 100%; max-width: 480px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; display: flex; flex-direction: column; gap: 16px; flex-shrink: 0; }
   .login-title { font-size: 14px; font-weight: 600; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
   .input-group { display: flex; flex-direction: column; gap: 6px; }
   .input-label { font-size: 11px; color: var(--muted); font-weight: 500; }
-  .input {
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: 8px; padding: 11px 14px;
-    color: var(--text); font-size: 15px; outline: none;
-    transition: border-color 0.15s; width: 100%;
-  }
+  .input { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 11px 14px; color: var(--text); font-size: 15px; outline: none; transition: border-color 0.15s; width: 100%; }
   .input:focus { border-color: var(--green); }
   select.input { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
   select.input option { background: #18181b; }
 
-  /* ── CAMERA ── */
-  .cam-wrap {
-    width: 100%; max-width: 480px;
-    position: relative; border-radius: 12px; overflow: hidden;
-    border: 1px solid var(--border); background: #000;
-    aspect-ratio: 4/3;
-    display: none; /* hidden until login */
-    align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
+  .cam-wrap { width: 100%; max-width: 480px; position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: #000; aspect-ratio: 4/3; display: none; align-items: center; justify-content: center; flex-shrink: 0; }
   .cam-wrap.visible { display: flex; }
   video { width: 100%; height: 100%; object-fit: cover; display: none; }
   .cam-idle { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--muted); text-align: center; padding: 20px; }
@@ -85,13 +47,7 @@
   .flash { position: absolute; inset: 0; background: rgba(34,197,94,0.25); opacity: 0; pointer-events: none; transition: opacity 0.1s; }
   .flash.show { opacity: 1; }
 
-  /* ── STATUS ── */
-  .status {
-    width: 100%; max-width: 480px; padding: 11px 14px;
-    border-radius: 8px; border: 1px solid var(--border);
-    background: var(--surface); font-size: 13px; color: var(--muted);
-    display: none; align-items: center; gap: 8px; flex-shrink: 0;
-  }
+  .status { width: 100%; max-width: 480px; padding: 11px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); font-size: 13px; color: var(--muted); display: none; align-items: center; gap: 8px; flex-shrink: 0; }
   .status.visible { display: flex; }
   .status.ok    { border-color: var(--green-dim); background: var(--green-bg); color: var(--green); }
   .status.error { border-color: #7f1d1d; background: #450a0a; color: var(--red); }
@@ -99,21 +55,13 @@
   .spinner { width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ── BUTTONS ── */
   .btn-row { width: 100%; max-width: 480px; display: none; gap: 10px; flex-shrink: 0; }
   .btn-row.visible { display: flex; }
-  .btn {
-    flex: 1; padding: 13px; border-radius: 8px;
-    border: 1px solid var(--border); background: var(--surface);
-    color: var(--text); font-size: 14px; font-weight: 600;
-    cursor: pointer; transition: all 0.15s;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-  }
+  .btn { flex: 1; padding: 13px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
   .btn:disabled { opacity: 0.35; cursor: not-allowed; }
   .btn.primary { background: var(--green); color: #000; border-color: var(--green); flex: 2; font-weight: 700; }
   .btn.primary:hover:not(:disabled) { background: #16a34a; }
 
-  /* ── RESULT ── */
   .result-card { display: none; width: 100%; max-width: 480px; border: 1px solid var(--green-dim); border-radius: 10px; overflow: hidden; flex-shrink: 0; }
   .result-card.show { display: block; }
   .result-header { padding: 10px 14px; background: var(--green-bg); border-bottom: 1px solid var(--green-dim); font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--green); }
@@ -127,7 +75,6 @@
   .send-row { display: none; width: 100%; max-width: 480px; gap: 10px; flex-shrink: 0; }
   .send-row.show { display: flex; }
 
-  /* ── HISTORY ── */
   .history { display: none; width: 100%; max-width: 480px; flex-direction: column; gap: 8px; flex-shrink: 0; }
   .history.show { display: flex; }
   .history-title { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; }
@@ -137,7 +84,6 @@
   .history-meta { font-size: 11px; color: var(--muted); font-family: monospace; }
   .tag { font-size: 10px; padding: 3px 7px; border-radius: 4px; font-weight: 600; background: var(--green-bg); color: var(--green); border: 1px solid var(--green-dim); white-space: nowrap; }
 
-  /* ── TOAST ── */
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(12px); background: var(--text); color: var(--bg); font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 8px; opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 100; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
@@ -155,7 +101,6 @@
   <div class="user-pill" id="userPill"></div>
 </div>
 
-<!-- Login -->
 <div class="login-card" id="loginCard">
   <div class="login-title">Identificação</div>
   <div class="input-group">
@@ -174,17 +119,11 @@
   <div id="loginErro" style="color:var(--red);font-size:12px;text-align:center;display:none;"></div>
 </div>
 
-<!-- Câmera -->
 <div class="cam-wrap" id="camWrap">
-  <div class="cam-idle" id="camIdle">
-    <div class="cam-idle-icon">📷</div>
-    <p>Câmera desligada</p>
-  </div>
+  <div class="cam-idle" id="camIdle"><div class="cam-idle-icon">📷</div><p>Câmera desligada</p></div>
   <video id="video" autoplay muted playsinline></video>
-  <div class="corner tl" id="c1"></div>
-  <div class="corner tr" id="c2"></div>
-  <div class="corner bl" id="c3"></div>
-  <div class="corner br" id="c4"></div>
+  <div class="corner tl" id="c1"></div><div class="corner tr" id="c2"></div>
+  <div class="corner bl" id="c3"></div><div class="corner br" id="c4"></div>
   <div class="scan-line" id="scanLine"></div>
   <div class="flash" id="flash"></div>
 </div>
@@ -203,37 +142,47 @@
 
 <div class="send-row" id="sendRow">
   <button class="btn" onclick="resetScan()">Cancelar</button>
-  <button class="btn primary" id="sendBtn" onclick="enviar()">📤 Enviar para Sheets</button>
+  <button class="btn primary" id="sendBtn" onclick="enviar()">📤 Enviar</button>
 </div>
 
 <div class="history" id="history">
-  <div class="history-title">
-    <span>Enviados nesta sessão</span>
-    <span id="histCount"></span>
-  </div>
+  <div class="history-title"><span>Enviados nesta sessão</span><span id="histCount"></span></div>
   <div id="histList"></div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script>
-const SENHA       = 'contourline2024';
-const APPS_SCRIPT = 'https://script.google.com/macros/s/AKfycbxAfwg-jei3GEW34UAMVRwRTw0TTh652rP8So1E3ebgf1fmPRKy-2doN-rP3kJZzt_P3g/exec';
-const USUARIOS    = ['João', 'Susane'];
+<script type="module">
+import { initializeApp }              from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, push, set } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
+const firebaseConfig = {
+  apiKey:            "AIzaSyCvDfXJLqcNHw98MzE5vh4FEgqyLCdlz0w",
+  authDomain:        "aplicativo-nfe.firebaseapp.com",
+  databaseURL:       "https://aplicativo-nfe-default-rtdb.firebaseio.com", // ← confirme esta URL
+  projectId:         "aplicativo-nfe",
+  storageBucket:     "aplicativo-nfe.firebasestorage.app",
+  messagingSenderId: "763216967875",
+  appId:             "1:763216967875:web:f65811332fa041bab40a76"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+const SENHA = 'contourline2024';
 let stream, camOn = false, scanning = false, currentData = null, nomeUsuario = '', sessionHistory = [];
 const video = document.getElementById('video');
 
 // ── LOGIN ──────────────────────────────────────────────
-function fazerLogin() {
+window.fazerLogin = function() {
   const nome  = document.getElementById('inputNome').value;
   const senha = document.getElementById('inputSenha').value;
   const erro  = document.getElementById('loginErro');
-  if (!nome)           { erro.style.display = 'block'; erro.textContent = 'Selecione seu nome'; return; }
-  if (senha !== SENHA) { erro.style.display = 'block'; erro.textContent = 'Senha incorreta'; return; }
+  if (!nome)           { erro.style.display='block'; erro.textContent='Selecione seu nome'; return; }
+  if (senha !== SENHA) { erro.style.display='block'; erro.textContent='Senha incorreta'; return; }
   sessionStorage.setItem('nfse_usuario', nome);
   mostrarApp(nome);
-}
+};
 
 function mostrarApp(nome) {
   nomeUsuario = nome;
@@ -247,22 +196,17 @@ function mostrarApp(nome) {
   setStatus(`Olá, ${nome}! Ligue a câmera para começar.`, 'info');
 }
 
-// Restaura sessão
-(function(){
-  const salvo = sessionStorage.getItem('nfse_usuario');
-  if (salvo) mostrarApp(salvo);
-})();
+const salvo = sessionStorage.getItem('nfse_usuario');
+if (salvo) mostrarApp(salvo);
 
-document.getElementById('inputSenha').addEventListener('keydown', e => { if (e.key === 'Enter') fazerLogin(); });
+document.getElementById('inputSenha').addEventListener('keydown', e => { if (e.key === 'Enter') window.fazerLogin(); });
 
 // ── CAMERA ────────────────────────────────────────────
-async function toggleCam() { camOn ? stopCam() : await startCam(); }
+window.toggleCam = async function() { camOn ? stopCam() : await startCam(); };
 
 async function startCam() {
   try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 } }
-    });
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 } } });
     video.srcObject = stream; await video.play();
     camOn = true;
     video.style.display = 'block';
@@ -287,7 +231,7 @@ function stopCam() {
 }
 
 // ── SCAN ──────────────────────────────────────────────
-async function startScan() {
+window.startScan = async function() {
   if (!camOn || scanning) return;
   if (!('BarcodeDetector' in window)) { setStatus('❌ Use Chrome ou Edge atualizado', 'error'); return; }
   scanning = true;
@@ -311,7 +255,7 @@ async function startScan() {
     } catch(e) { setTimeout(loop, 150); }
   }
   loop();
-}
+};
 
 // ── PROCESS QR ────────────────────────────────────────
 async function processarQR(url) {
@@ -356,7 +300,9 @@ function parseNFSe(html, url) {
     valor:     get(/Valor Líquido da NFS-e\s*\n\s*(R\$\s*[\d.,]+)/),
     descricao: get(/Descrição do Serviço\s*\n\s*([^\n]{5,})/),
     chave:     get(/Chave de Acesso da NFS-e\s*\n\s*([A-Za-z0-9]+)/),
-    usuario:   nomeUsuario, url
+    usuario:   nomeUsuario,
+    timestamp: Date.now(),
+    url
   };
 }
 
@@ -373,41 +319,45 @@ function mostrarResult(d) {
   document.getElementById('sendRow').classList.add('show');
 }
 
-function resetScan() {
+window.resetScan = function() {
   currentData = null;
   document.getElementById('resultCard').classList.remove('show');
   document.getElementById('sendRow').classList.remove('show');
   document.getElementById('scanBtn').disabled = false;
   setStatus('Câmera ativa — clique em Escanear QR', 'info');
-}
+};
 
-// ── ENVIAR ─────────────────────────────────────────────
-async function enviar() {
+// ── ENVIAR PARA FIREBASE ───────────────────────────────
+window.enviar = async function() {
   const btn = document.getElementById('sendBtn');
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner"></div> Enviando...';
-  setStatus('Enviando para o Sheets...', 'info');
+  setStatus('Enviando para o painel...', 'info');
   try {
-    const params = new URLSearchParams({
-      chave: currentData.chave, numero: currentData.numero,
-      data: currentData.data_em, prestador: currentData.prestador,
-      cnpj: currentData.cnpj, valor: currentData.valor,
-      descricao: currentData.descricao, usuario: currentData.usuario
+    // Grava em /notas/{usuario}/{pushId}
+    const notasRef = ref(db, `notas/${currentData.usuario}`);
+    await set(push(notasRef), {
+      chave:     currentData.chave,
+      numero:    currentData.numero,
+      data_em:   currentData.data_em,
+      prestador: currentData.prestador,
+      cnpj:      currentData.cnpj,
+      valor:     currentData.valor,
+      usuario:   currentData.usuario,
+      timestamp: currentData.timestamp,
     });
-    await fetch(`${APPS_SCRIPT}?${params}`, { method: 'GET', mode: 'no-cors' });
-    setStatus('✓ Nota enviada!', 'ok');
-    showToast('✓ Enviado com sucesso!');
+    setStatus('✓ Nota enviada! Aparecerá no painel agora.', 'ok');
+    showToast('✓ Enviado!');
     sessionHistory.unshift(currentData);
     renderHistory();
-    setTimeout(resetScan, 1500);
+    setTimeout(window.resetScan, 1500);
   } catch(e) {
     setStatus('Erro ao enviar: ' + e.message, 'error');
   }
   btn.disabled = false;
-  btn.innerHTML = '📤 Enviar para Sheets';
-}
+  btn.innerHTML = '📤 Enviar';
+};
 
-// ── HISTORY ───────────────────────────────────────────
 function renderHistory() {
   if (!sessionHistory.length) return;
   document.getElementById('history').classList.add('show');
@@ -419,11 +369,9 @@ function renderHistory() {
         <div class="history-meta">Nº ${h.numero} · ${h.valor}</div>
       </div>
       <div class="tag">✓ Enviado</div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
-// ── HELPERS ───────────────────────────────────────────
 function setStatus(msg, type) {
   const el = document.getElementById('status');
   el.className = 'status visible' + (type ? ' ' + type : '');
