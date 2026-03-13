@@ -312,19 +312,28 @@ window.resetScan = function() {
 };
 
 // ── ENVIAR PARA FIREBASE ───────────────────────────────
+let enviando = false;
 window.enviar = async function() {
+  // Proteção duplo clique
+  if (enviando) return;
+  if (!currentData) { setStatus('Erro: nenhuma nota lida.', 'error'); return; }
+
+  enviando = true;
   const btn = document.getElementById('sendBtn');
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner"></div> Enviando...';
   setStatus('Enviando para o painel...', 'info');
+
+  // Salva snapshot local antes de qualquer await
+  const dadosEnvio = {
+    chave:     currentData.chave,
+    usuario:   currentData.usuario,
+    timestamp: currentData.timestamp,
+  };
+
   try {
-    // Grava em /notas/{usuario}/{pushId}
-    const notasRef = ref(db, `notas/${currentData.usuario}`);
-    await set(push(notasRef), {
-      chave:     currentData.chave,
-      usuario:   currentData.usuario,
-      timestamp: currentData.timestamp,
-    });
+    const notasRef = ref(db, 'notas/' + dadosEnvio.usuario);
+    await set(push(notasRef), dadosEnvio);
     setStatus('✓ Nota enviada! Aparecerá no painel agora.', 'ok');
     showToast('✓ Enviado!');
     sessionHistory.unshift(currentData);
@@ -332,9 +341,11 @@ window.enviar = async function() {
     setTimeout(window.resetScan, 1500);
   } catch(e) {
     setStatus('Erro ao enviar: ' + e.message, 'error');
+    btn.disabled = false;
+    btn.innerHTML = '📤 Enviar';
+  } finally {
+    enviando = false;
   }
-  btn.disabled = false;
-  btn.innerHTML = '📤 Enviar';
 };
 
 function renderHistory() {
