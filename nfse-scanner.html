@@ -170,7 +170,7 @@ const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
 const SENHA = 'contourline2024';
-let stream, camOn = false, scanning = false, currentData = null, nomeUsuario = '', sessionHistory = [];
+let stream, camOn = false, scanning = false, currentData = null, nomeUsuario = '', sessionHistory = [], enviando = false;
 const video = document.getElementById('video');
 
 // ── LOGIN ──────────────────────────────────────────────
@@ -305,6 +305,9 @@ function mostrarResult(d) {
 
 window.resetScan = function() {
   currentData = null;
+  enviando = false;
+  const btn = document.getElementById('sendBtn');
+  if (btn) { btn.disabled = false; btn.innerHTML = '📤 Enviar'; }
   document.getElementById('resultCard').classList.remove('show');
   document.getElementById('sendRow').classList.remove('show');
   document.getElementById('scanBtn').disabled = false;
@@ -312,7 +315,6 @@ window.resetScan = function() {
 };
 
 // ── ENVIAR PARA FIREBASE ───────────────────────────────
-let enviando = false;
 window.enviar = async function() {
   // Proteção duplo clique
   if (enviando) return;
