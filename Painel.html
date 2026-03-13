@@ -200,13 +200,14 @@ function iniciarListener() {
   });
 }
 
-function criarCard(n, i, isNova) {
+function criarCard(n, isNova) {
   const ts = n.timestamp ? new Date(n.timestamp) : null;
   const hora = ts ? ts.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', second:'2-digit' }) : '—';
   const data = ts ? ts.toLocaleDateString('pt-BR') : '—';
+  const k = n.fbKey;
   const div = document.createElement('div');
   div.className = 'nota-card' + (isNova ? ' new' : '');
-  div.id = 'card-' + n.fbKey;
+  div.id = 'card-' + k;
   div.innerHTML =
     '<div class="nota-header">' +
       '<div class="nota-header-left">' +
@@ -219,9 +220,9 @@ function criarCard(n, i, isNova) {
     '</div>' +
     '<div class="nota-body">' +
       '<div class="chave-text">' + n.chave + '</div>' +
-      '<button class="copy-btn" id="btn-' + i + '" onclick="copiar(' + i + ')">📋 Copiar</button>' +
+      '<button class="copy-btn" id="btn-' + k + '" onclick="copiar(\'' + k + '\')">📋 Copiar</button>' +
     '</div>' +
-    '<div class="countdown-bar-wrap"><div class="countdown-bar" id="bar-' + i + '"></div></div>';
+    '<div class="countdown-bar-wrap"><div class="countdown-bar" id="bar-' + k + '"></div></div>';
   return div;
 }
 
@@ -249,26 +250,27 @@ function renderNotas(temNova) {
   // Adiciona só cards novos sem resetar o scroll
   notas.forEach((n, i) => {
     if (!document.getElementById('card-' + n.fbKey)) {
-      const card = criarCard(n, i, temNova && i === 0);
+      const card = criarCard(n, temNova && i === 0);
       list.insertBefore(card, list.firstChild);
     }
   });
 }
 
-window.copiar = function(i) {
-  const nota = notas[i];
+window.copiar = function(fbKey) {
+  const nota = notas.find(n => n.fbKey === fbKey);
+  if (!nota) return;
   navigator.clipboard.writeText(nota.chave).then(() => {
-    const btn = document.getElementById('btn-' + i);
+    const btn = document.getElementById('btn-' + fbKey);
     btn.className = 'copy-btn copied';
     btn.textContent = '✓ Copiado!';
     btn.disabled = true;
     showToast('Chave copiada! Some em 10s');
 
-    const bar = document.getElementById('bar-' + i);
+    const bar = document.getElementById('bar-' + fbKey);
     if (bar) setTimeout(() => bar.classList.add('running'), 50);
 
     setTimeout(() => {
-      remove(ref(db, 'notas/' + usuarioAtual + '/' + nota.fbKey));
+      remove(ref(db, 'notas/' + usuarioAtual + '/' + fbKey));
     }, 10000);
   });
 };
