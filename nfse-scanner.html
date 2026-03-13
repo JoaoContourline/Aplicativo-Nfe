@@ -2,144 +2,164 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel NFS-e — Contourline</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>NFS-e Scanner — Contourline</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #f1f5f9; --surface: #ffffff; --surface2: #f8fafc;
-    --border: #e2e8f0; --text: #0f172a; --muted: #64748b; --faint: #94a3b8;
-    --green: #16a34a; --green-bg: #f0fdf4; --green-dim: #bbf7d0; --green-text: #15803d;
-    --blue: #2563eb; --red: #dc2626;
+    --bg: #09090b; --surface: #18181b; --border: #3f3f46;
+    --text: #fafafa; --muted: #a1a1aa; --green: #22c55e;
+    --green-bg: #052e16; --green-dim: #166534; --blue: #3b82f6; --red: #ef4444;
   }
-  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; }
+  body { min-height: 100vh; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 16px; gap: 12px; }
 
-  .login-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
-  .login-box { width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 4px 24px rgba(0,0,0,0.07); }
-  .login-logo { display: flex; align-items: center; gap: 12px; }
-  .login-logo-mark { width: 40px; height: 40px; background: var(--green); border-radius: 10px; display: grid; place-items: center; font-size: 20px; }
-  .login-title { font-size: 20px; font-weight: 700; }
-  .login-sub { font-size: 13px; color: var(--muted); }
+  .topbar { width: 100%; max-width: 480px; display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-mark { width: 32px; height: 32px; background: var(--green); border-radius: 8px; display: grid; place-items: center; font-size: 16px; }
+  .logo-text { font-size: 15px; font-weight: 700; }
+  .logo-sub  { font-size: 11px; color: var(--muted); }
+  .user-pill { font-size: 12px; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--green-dim); background: var(--green-bg); color: var(--green); display: none; }
+
+  .login-card { width: 100%; max-width: 480px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; display: flex; flex-direction: column; gap: 16px; flex-shrink: 0; }
+  .login-title { font-size: 14px; font-weight: 600; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
   .input-group { display: flex; flex-direction: column; gap: 6px; }
-  .input-label { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .input-label { font-size: 11px; color: var(--muted); font-weight: 500; }
   .input { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 11px 14px; color: var(--text); font-size: 15px; outline: none; transition: border-color 0.15s; width: 100%; }
   .input:focus { border-color: var(--green); }
-  select.input { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
-  .login-btn { padding: 13px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
-  .login-btn:hover { background: #15803d; }
-  .login-error { color: var(--red); font-size: 12px; text-align: center; display: none; }
+  select.input { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+  select.input option { background: #18181b; }
 
-  .app { display: none; flex-direction: column; height: 100vh; }
-  .header { padding: 14px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--surface); position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
-  .header-left { display: flex; align-items: center; gap: 12px; }
-  .header-logo { width: 32px; height: 32px; background: var(--green); border-radius: 8px; display: grid; place-items: center; font-size: 16px; }
-  .header-title { font-size: 16px; font-weight: 700; }
-  .header-sub { font-size: 12px; color: var(--muted); }
-  .header-right { display: flex; align-items: center; gap: 10px; }
-  .pill { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); }
-  .pill.ok { border-color: var(--green-dim); background: var(--green-bg); color: var(--green-text); }
-  .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-  .pill-dot.pulse { animation: pulse 1s ease-in-out 3; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  .cam-wrap { width: 100%; max-width: 480px; position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: #000; aspect-ratio: 4/3; display: none; align-items: center; justify-content: center; flex-shrink: 0; }
+  .cam-wrap.visible { display: flex; }
+  video { width: 100%; height: 100%; object-fit: cover; display: none; }
+  .cam-idle { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--muted); text-align: center; padding: 20px; }
+  .cam-idle-icon { font-size: 48px; opacity: 0.3; }
+  .cam-idle p { font-size: 13px; }
+  .corner { position: absolute; width: 28px; height: 28px; pointer-events: none; display: none; }
+  .corner.show { display: block; }
+  .corner.tl { top: 12px; left: 12px; border-top: 2.5px solid var(--green); border-left: 2.5px solid var(--green); }
+  .corner.tr { top: 12px; right: 12px; border-top: 2.5px solid var(--green); border-right: 2.5px solid var(--green); }
+  .corner.bl { bottom: 12px; left: 12px; border-bottom: 2.5px solid var(--green); border-left: 2.5px solid var(--green); }
+  .corner.br { bottom: 12px; right: 12px; border-bottom: 2.5px solid var(--green); border-right: 2.5px solid var(--green); }
+  .scan-line { position: absolute; left: 12px; right: 12px; height: 2px; background: linear-gradient(90deg, transparent, var(--green), transparent); box-shadow: 0 0 10px var(--green); animation: scanmove 2s ease-in-out infinite; display: none; }
+  .scan-line.show { display: block; }
+  @keyframes scanmove { 0%{top:12px} 50%{top:calc(100% - 12px)} 100%{top:12px} }
+  .flash { position: absolute; inset: 0; background: rgba(34,197,94,0.25); opacity: 0; pointer-events: none; transition: opacity 0.1s; }
+  .flash.show { opacity: 1; }
 
-  .empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--faint); text-align: center; padding: 40px; }
-  .empty-icon { font-size: 56px; opacity: 0.4; }
-  .empty-title { font-size: 16px; font-weight: 600; color: var(--muted); }
-  .empty-sub { font-size: 13px; line-height: 1.6; }
+  .status { width: 100%; max-width: 480px; padding: 11px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); font-size: 13px; color: var(--muted); display: none; align-items: center; gap: 8px; flex-shrink: 0; }
+  .status.visible { display: flex; }
+  .status.ok    { border-color: var(--green-dim); background: var(--green-bg); color: var(--green); }
+  .status.error { border-color: #7f1d1d; background: #450a0a; color: var(--red); }
+  .status.info  { border-color: #1e3a5f; background: #0f172a; color: var(--blue); }
+  .spinner { width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-  .list { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 16px 24px; display: flex; flex-direction: column; gap: 10px; max-height: calc(100vh - 80px); }
+  .btn-row { width: 100%; max-width: 480px; display: none; gap: 10px; flex-shrink: 0; }
+  .btn-row.visible { display: flex; }
+  .btn { flex: 1; padding: 13px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn.primary { background: var(--green); color: #000; border-color: var(--green); flex: 2; font-weight: 700; }
+  .btn.primary:hover:not(:disabled) { background: #16a34a; }
 
-  .nota-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
-  .nota-card.new { border-color: var(--green-dim); animation: slideIn 0.3s ease; box-shadow: 0 0 0 3px var(--green-bg); }
-  @keyframes slideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+  .result-card { display: none; width: 100%; max-width: 480px; border: 1px solid var(--green-dim); border-radius: 10px; overflow: hidden; flex-shrink: 0; }
+  .result-card.show { display: block; }
+  .result-header { padding: 10px 14px; background: var(--green-bg); border-bottom: 1px solid var(--green-dim); font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--green); }
+  .field { display: flex; padding: 10px 14px; border-bottom: 1px solid var(--border); gap: 12px; align-items: flex-start; background: var(--surface); }
+  .field:last-child { border-bottom: none; }
+  .field-name { font-size: 11px; color: var(--muted); width: 90px; flex-shrink: 0; padding-top: 2px; font-family: monospace; }
+  .field-val { font-size: 13px; font-weight: 500; color: var(--text); word-break: break-all; line-height: 1.4; flex: 1; }
+  .field-val.mono { font-family: monospace; font-size: 11px; }
+  .field-val.green { color: var(--green); font-weight: 700; }
 
-  .nota-header { padding: 10px 16px; background: var(--surface2); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .nota-header-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
-  .nota-num { font-size: 13px; font-weight: 700; color: var(--green-text); white-space: nowrap; }
-  .nota-prestador { font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .nota-hora { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .send-row { display: none; width: 100%; max-width: 480px; gap: 10px; flex-shrink: 0; }
+  .send-row.show { display: flex; }
 
-  .nota-body { padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
-  .chave-text { font-family: monospace; font-size: 13px; color: var(--text); word-break: break-all; flex: 1; line-height: 1.5; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; }
-  .copy-btn { padding: 10px 18px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: all 0.15s; }
-  .copy-btn:hover { background: #15803d; }
-  .copy-btn.copied { background: #15803d; opacity: 0.85; }
+  .history { display: none; width: 100%; max-width: 480px; flex-direction: column; gap: 8px; flex-shrink: 0; }
+  .history.show { display: flex; }
+  .history-title { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; }
+  .history-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+  .history-info { flex: 1; overflow: hidden; }
+  .history-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .history-meta { font-size: 11px; color: var(--muted); font-family: monospace; }
+  .tag { font-size: 10px; padding: 3px 7px; border-radius: 4px; font-weight: 600; background: var(--green-bg); color: var(--green); border: 1px solid var(--green-dim); white-space: nowrap; }
 
-  .new-badge { background: var(--green-bg); border: 1px solid var(--green-dim); border-radius: 4px; padding: 2px 8px; font-size: 10px; font-weight: 700; color: var(--green-text); }
-
-  .countdown-bar-wrap { height: 3px; background: var(--border); }
-  .countdown-bar { height: 3px; background: var(--green); width: 100%; transition: width 10s linear; }
-  .countdown-bar.running { width: 0%; }
-
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(12px); background: var(--text); color: #fff; font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 8px; opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 200; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(12px); background: var(--text); color: var(--bg); font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 8px; opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 100; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
 
-<div class="login-overlay" id="loginOverlay">
-  <div class="login-box">
-    <div class="login-logo">
-      <div class="login-logo-mark">📄</div>
-      <div>
-        <div class="login-title">Painel NFS-e</div>
-        <div class="login-sub">Contourline — Fiscal</div>
-      </div>
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark">📄</div>
+    <div>
+      <div class="logo-text">NFS-e Scanner</div>
+      <div class="logo-sub">Contourline</div>
     </div>
-    <div class="input-group">
-      <div class="input-label">Quem é você?</div>
-      <select class="input" id="nomeSelect">
-        <option value="">Selecione seu nome...</option>
-        <option value="João">João</option>
-        <option value="Susane">Susane</option>
-      </select>
-    </div>
-    <div class="input-group">
-      <div class="input-label">Senha de acesso</div>
-      <input class="input" id="senhaInput" type="password" placeholder="••••••">
-    </div>
-    <button class="login-btn" onclick="fazerLogin()">Entrar</button>
-    <div class="login-error" id="loginError"></div>
   </div>
+  <div class="user-pill" id="userPill"></div>
 </div>
 
-<div class="app" id="app">
-  <div class="header">
-    <div class="header-left">
-      <div class="header-logo">📄</div>
-      <div>
-        <div class="header-title">Painel NFS-e</div>
-        <div class="header-sub" id="headerSub">Contourline</div>
-      </div>
-    </div>
-    <div class="header-right">
-      <div class="pill" id="countPill">0 notas</div>
-      <div class="pill ok">
-        <div class="pill-dot" id="syncDot"></div>
-        <span>ao vivo</span>
-      </div>
-    </div>
+<div class="login-card" id="loginCard">
+  <div class="login-title">Identificação</div>
+  <div class="input-group">
+    <div class="input-label">Quem é você?</div>
+    <select class="input" id="inputNome">
+      <option value="">Selecione seu nome...</option>
+      <option value="João">João</option>
+      <option value="Susane">Susane</option>
+    </select>
   </div>
-
-  <div class="empty" id="emptyState">
-    <div class="empty-icon">📭</div>
-    <div class="empty-title">Nenhuma nota pendente</div>
-    <div class="empty-sub">Escaneie um QR code pelo celular<br>a chave aparece aqui em tempo real</div>
+  <div class="input-group">
+    <div class="input-label">Senha</div>
+    <input class="input" id="inputSenha" type="password" placeholder="••••••">
   </div>
+  <button class="btn primary" style="flex:none;width:100%;" onclick="fazerLogin()">Entrar</button>
+  <div id="loginErro" style="color:var(--red);font-size:12px;text-align:center;display:none;"></div>
+</div>
 
-  <div class="list" id="noteList" style="display:none;"></div>
+<div class="cam-wrap" id="camWrap">
+  <div class="cam-idle" id="camIdle"><div class="cam-idle-icon">📷</div><p>Câmera desligada</p></div>
+  <video id="video" autoplay muted playsinline></video>
+  <div class="corner tl" id="c1"></div><div class="corner tr" id="c2"></div>
+  <div class="corner bl" id="c3"></div><div class="corner br" id="c4"></div>
+  <div class="scan-line" id="scanLine"></div>
+  <div class="flash" id="flash"></div>
+</div>
+
+<div class="status" id="status"></div>
+
+<div class="btn-row" id="btnRow">
+  <button class="btn" id="camBtn" onclick="toggleCam()">📷 Ligar</button>
+  <button class="btn primary" id="scanBtn" onclick="startScan()" disabled>⬛ Escanear QR</button>
+</div>
+
+<div class="result-card" id="resultCard">
+  <div class="result-header">✓ QR Lido — confirme os dados</div>
+  <div id="resultBody"></div>
+</div>
+
+<div class="send-row" id="sendRow">
+  <button class="btn" onclick="resetScan()">Cancelar</button>
+  <button class="btn primary" id="sendBtn" onclick="enviar()">📤 Enviar</button>
+</div>
+
+<div class="history" id="history">
+  <div class="history-title"><span>Enviados nesta sessão</span><span id="histCount"></span></div>
+  <div id="histList"></div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { initializeApp }                     from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getDatabase, ref, onValue, remove } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+import { initializeApp }              from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, push, set } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
 const firebaseConfig = {
   apiKey:            "AIzaSyCvDfXJLqcNHw98MzE5vh4FEgqyLCdlz0w",
   authDomain:        "aplicativo-nfe.firebaseapp.com",
-  databaseURL:       "https://aplicativo-nfe-default-rtdb.firebaseio.com",
+  databaseURL:       "https://aplicativo-nfe-default-rtdb.firebaseio.com", // ← confirme esta URL
   projectId:         "aplicativo-nfe",
   storageBucket:     "aplicativo-nfe.firebasestorage.app",
   messagingSenderId: "763216967875",
@@ -150,111 +170,190 @@ const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
 const SENHA = 'contourline2024';
-let usuarioAtual = '';
-let notas = [];
-let primeiraVez = true;
+let stream, camOn = false, scanning = false, currentData = null, nomeUsuario = '', sessionHistory = [];
+const video = document.getElementById('video');
 
+// ── LOGIN ──────────────────────────────────────────────
 window.fazerLogin = function() {
-  const nome  = document.getElementById('nomeSelect').value;
-  const senha = document.getElementById('senhaInput').value;
-  const erro  = document.getElementById('loginError');
+  const nome  = document.getElementById('inputNome').value;
+  const senha = document.getElementById('inputSenha').value;
+  const erro  = document.getElementById('loginErro');
   if (!nome)           { erro.style.display='block'; erro.textContent='Selecione seu nome'; return; }
   if (senha !== SENHA) { erro.style.display='block'; erro.textContent='Senha incorreta'; return; }
   localStorage.setItem('nfse_usuario', nome);
-  mostrarPainel(nome);
+  mostrarApp(nome);
 };
 
-function mostrarPainel(nome) {
-  usuarioAtual = nome;
-  document.getElementById('loginOverlay').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
-  document.getElementById('headerSub').textContent = 'Olá, ' + nome + ' — tempo real';
-  iniciarListener();
+function mostrarApp(nome) {
+  nomeUsuario = nome;
+  document.getElementById('loginCard').style.display = 'none';
+  document.getElementById('camWrap').classList.add('visible');
+  document.getElementById('status').classList.add('visible');
+  document.getElementById('btnRow').classList.add('visible');
+  const pill = document.getElementById('userPill');
+  pill.textContent = '👤 ' + nome;
+  pill.style.display = 'block';
+  setStatus(`Olá, ${nome}! Ligue a câmera para começar.`, 'info');
 }
 
 const salvo = localStorage.getItem('nfse_usuario');
-if (salvo) mostrarPainel(salvo);
+if (salvo) mostrarApp(salvo);
 
-document.getElementById('senhaInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') window.fazerLogin();
-});
+document.getElementById('inputSenha').addEventListener('keydown', e => { if (e.key === 'Enter') window.fazerLogin(); });
 
-function iniciarListener() {
-  onValue(ref(db, 'notas/' + usuarioAtual), (snapshot) => {
-    const data = snapshot.val();
-    const lista = [];
-    if (data) {
-      Object.entries(data).forEach(([key, val]) => lista.push({ fbKey: key, ...val }));
-      lista.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-    }
-    const temNova = !primeiraVez && lista.length > notas.length;
-    primeiraVez = false;
-    notas = lista;
-    renderNotas(temNova);
-    if (temNova) {
-      showToast('✓ Nova nota recebida!');
-      const dot = document.getElementById('syncDot');
-      dot.className = 'pill-dot pulse';
-      setTimeout(() => dot.className = 'pill-dot', 3500);
-    }
-  });
+// ── CAMERA ────────────────────────────────────────────
+window.toggleCam = async function() { camOn ? stopCam() : await startCam(); };
+
+async function startCam() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 } } });
+    video.srcObject = stream; await video.play();
+    camOn = true;
+    video.style.display = 'block';
+    document.getElementById('camIdle').style.display = 'none';
+    document.getElementById('camBtn').textContent = '✕ Desligar';
+    document.getElementById('scanBtn').disabled = false;
+    setStatus('Câmera ativa — clique em Escanear QR', 'info');
+  } catch(e) { setStatus('Erro câmera: ' + e.message, 'error'); }
 }
 
-function renderNotas(temNova) {
-  const list  = document.getElementById('noteList');
-  const empty = document.getElementById('emptyState');
-  document.getElementById('countPill').textContent =
-    notas.length + (notas.length === 1 ? ' nota' : ' notas');
+function stopCam() {
+  scanning = false;
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  camOn = false;
+  video.style.display = 'none'; video.srcObject = null;
+  document.getElementById('camIdle').style.display = 'flex';
+  document.getElementById('camBtn').textContent = '📷 Ligar';
+  document.getElementById('scanBtn').disabled = true;
+  ['c1','c2','c3','c4'].forEach(id => document.getElementById(id).classList.remove('show'));
+  document.getElementById('scanLine').classList.remove('show');
+  setStatus('Câmera desligada', '');
+}
 
-  if (notas.length === 0) {
-    empty.style.display = 'flex';
-    list.style.display  = 'none';
-    return;
+// ── SCAN ──────────────────────────────────────────────
+window.startScan = async function() {
+  if (!camOn || scanning) return;
+  if (!('BarcodeDetector' in window)) { setStatus('❌ Use Chrome ou Edge atualizado', 'error'); return; }
+  scanning = true;
+  document.getElementById('scanBtn').disabled = true;
+  ['c1','c2','c3','c4'].forEach(id => document.getElementById(id).classList.add('show'));
+  document.getElementById('scanLine').classList.add('show');
+  setStatus('Aponte para o QR code...', 'info');
+  const det = new BarcodeDetector({ formats: ['qr_code'] });
+  async function loop() {
+    if (!scanning) return;
+    try {
+      const codes = await det.detect(video);
+      if (codes.length > 0) {
+        scanning = false;
+        ['c1','c2','c3','c4'].forEach(id => document.getElementById(id).classList.remove('show'));
+        document.getElementById('scanLine').classList.remove('show');
+        const flash = document.getElementById('flash');
+        flash.classList.add('show'); setTimeout(() => flash.classList.remove('show'), 400);
+        await processarQR(codes[0].rawValue);
+      } else { setTimeout(loop, 150); }
+    } catch(e) { setTimeout(loop, 150); }
   }
-  empty.style.display = 'none';
-  list.style.display  = 'flex';
+  loop();
+};
 
-  list.innerHTML = notas.map((n, i) => {
-    const ts = n.timestamp ? new Date(n.timestamp) : null;
-    const hora = ts ? ts.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', second:'2-digit' }) : '—';
-    const data = ts ? ts.toLocaleDateString('pt-BR') : '—';
-    return '<div class="nota-card' + (i === 0 && temNova ? ' new' : '') + '">' +
-      '<div class="nota-header">' +
-        '<div class="nota-header-left">' +
-          '<span class="nota-num">📅 ' + data + '</span>' +
-        '</div>' +
-        '<div style="display:flex;gap:8px;align-items:center;">' +
-          (i === 0 && temNova ? '<span class="new-badge">NOVA</span>' : '') +
-          '<span class="nota-hora">' + hora + '</span>' +
-        '</div>' +
-      '</div>' +
-      '<div class="nota-body">' +
-        '<div class="chave-text">' + n.chave + '</div>' +
-        '<button class="copy-btn" id="btn-' + i + '" onclick="copiar(' + i + ')">📋 Copiar</button>' +
-      '</div>' +
-      '<div class="countdown-bar-wrap"><div class="countdown-bar" id="bar-' + i + '"></div></div>' +
-    '</div>';
+// ── PROCESS QR ────────────────────────────────────────
+async function processarQR(url) {
+  setStatus('⏳ Lendo dados da nota...', 'info');
+  try {
+    currentData = extrairDadosURL(url);
+    if (currentData.chave === '—') throw new Error('Chave não encontrada na URL.');
+    mostrarResult(currentData);
+    setStatus('Dados prontos — confirme e envie', 'ok');
+  } catch(e) {
+    setStatus('Erro: ' + e.message, 'error');
+    document.getElementById('scanBtn').disabled = false;
+  }
+}
+
+// Extrai chave direto da URL do QR — sem proxy, sem HTML, funciona para qualquer prefeitura
+function extrairDadosURL(url) {
+  let chave = '—', numero = '—', cnpj = '—';
+  try {
+    const u = new URL(url);
+    // nfse.gov.br nacional: ?tpc=1&chave=XXXX
+    chave  = u.searchParams.get('chave')  || '—';
+    numero = u.searchParams.get('nfse')   || u.searchParams.get('numero') || '—';
+    cnpj   = u.searchParams.get('cnpj')   || '—';
+    // fallback: sequência longa na URL
+    if (chave === '—') {
+      const m = url.match(/[?&\/]([A-Za-z0-9]{30,})/);
+      if (m) chave = m[1];
+    }
+  } catch(e) {
+    const m = url.match(/chave=([A-Za-z0-9]+)/i);
+    if (m) chave = m[1];
+  }
+  return { chave, numero, cnpj, prestador: '—', data_em: '—', valor: '—', descricao: '—', usuario: nomeUsuario, timestamp: Date.now(), url };
+}
+
+function mostrarResult(d) {
+  const hora = new Date(d.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const data = new Date(d.timestamp).toLocaleDateString('pt-BR');
+  document.getElementById('resultBody').innerHTML = [
+    { name: 'Data/Hora do scan', val: `${data} ${hora}`, cls: '' },
+    { name: 'Chave',             val: d.chave,            cls: 'mono' },
+  ].map(f => `<div class="field"><div class="field-name">${f.name}</div><div class="field-val ${f.cls}">${f.val}</div></div>`).join('');
+  document.getElementById('resultCard').classList.add('show');
+  document.getElementById('sendRow').classList.add('show');
+}
+
+window.resetScan = function() {
+  currentData = null;
+  document.getElementById('resultCard').classList.remove('show');
+  document.getElementById('sendRow').classList.remove('show');
+  document.getElementById('scanBtn').disabled = false;
+  setStatus('Câmera ativa — clique em Escanear QR', 'info');
+};
+
+// ── ENVIAR PARA FIREBASE ───────────────────────────────
+window.enviar = async function() {
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Enviando...';
+  setStatus('Enviando para o painel...', 'info');
+  try {
+    // Grava em /notas/{usuario}/{pushId}
+    const notasRef = ref(db, `notas/${currentData.usuario}`);
+    await set(push(notasRef), {
+      chave:     currentData.chave,
+      usuario:   currentData.usuario,
+      timestamp: currentData.timestamp,
+    });
+    setStatus('✓ Nota enviada! Aparecerá no painel agora.', 'ok');
+    showToast('✓ Enviado!');
+    sessionHistory.unshift(currentData);
+    renderHistory();
+    setTimeout(window.resetScan, 1500);
+  } catch(e) {
+    setStatus('Erro ao enviar: ' + e.message, 'error');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '📤 Enviar';
+};
+
+function renderHistory() {
+  if (!sessionHistory.length) return;
+  document.getElementById('history').classList.add('show');
+  document.getElementById('histCount').textContent = sessionHistory.length + ' nota(s)';
+  document.getElementById('histList').innerHTML = sessionHistory.map(h => {
+    const ts = new Date(h.timestamp);
+    const hora = ts.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    const chaveResumida = h.chave ? h.chave.slice(0, 20) + '...' : '—';
+    return '<div class="history-item"><div class="history-info"><div class="history-name">' + hora + '</div><div class="history-meta">' + chaveResumida + '</div></div><div class="tag">✓ Enviado</div></div>';
   }).join('');
 }
 
-window.copiar = function(i) {
-  const nota = notas[i];
-  navigator.clipboard.writeText(nota.chave).then(() => {
-    const btn = document.getElementById('btn-' + i);
-    btn.className = 'copy-btn copied';
-    btn.textContent = '✓ Copiado!';
-    btn.disabled = true;
-    showToast('Chave copiada! Some em 10s');
-
-    const bar = document.getElementById('bar-' + i);
-    if (bar) setTimeout(() => bar.classList.add('running'), 50);
-
-    setTimeout(() => {
-      remove(ref(db, 'notas/' + usuarioAtual + '/' + nota.fbKey));
-    }, 10000);
-  });
-};
-
+function setStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.className = 'status visible' + (type ? ' ' + type : '');
+  el.innerHTML = `<span>${msg}</span>`;
+}
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
