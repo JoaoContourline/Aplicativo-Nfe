@@ -47,7 +47,7 @@
   .empty-title { font-size: 16px; font-weight: 600; color: var(--muted); }
   .empty-sub { font-size: 13px; line-height: 1.6; }
 
-  .list { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 16px 24px; display: flex; flex-direction: column; gap: 10px; max-height: calc(100vh - 80px); }
+  .list { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 16px 24px; display: flex; flex-direction: column; gap: 10px; height: calc(100vh - 80px); align-items: stretch; }
 
   .nota-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
   .nota-card.new { border-color: var(--green-dim); animation: slideIn 0.3s ease; box-shadow: 0 0 0 3px var(--green-bg); }
@@ -220,9 +220,10 @@ function criarCard(n, isNova) {
     '</div>' +
     '<div class="nota-body">' +
       '<div class="chave-text">' + n.chave + '</div>' +
-      '<button class="copy-btn" id="btn-' + k + '" onclick="copiar(\'' + k + '\')">📋 Copiar</button>' +
+      '<button class="copy-btn" id="btn-' + k + '">📋 Copiar</button>' +
     '</div>' +
     '<div class="countdown-bar-wrap"><div class="countdown-bar" id="bar-' + k + '"></div></div>';
+  div.querySelector('.copy-btn').addEventListener('click', () => copiar(k));
   return div;
 }
 
@@ -247,7 +248,7 @@ function renderNotas(temNova) {
     if (!notas.find(n => n.fbKey === key)) el.remove();
   });
 
-  // Adiciona só cards novos sem resetar o scroll
+  // Adiciona só cards novos no topo, os antigos descem
   notas.forEach((n, i) => {
     if (!document.getElementById('card-' + n.fbKey)) {
       const card = criarCard(n, temNova && i === 0);
