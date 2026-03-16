@@ -145,7 +145,7 @@
   <div class="status" id="status"></div>
 
   <div class="btn-row" id="btnRow">
-    <button class="btn btn-off" id="camBtn" onclick="toggleCam()">✕ Desligar</button>
+    <button class="btn btn-scan" id="camBtn" onclick="toggleCam()">📷 Ligar câmera</button>
     <button class="btn btn-scan" id="scanBtn" onclick="startScan()" disabled>
       <span style="font-size:18px">▣</span> Escanear QR
     </button>
@@ -256,7 +256,8 @@ async function startCam() {
     camOn = true;
     video.style.display = 'block';
     document.getElementById('camIdle').style.display = 'none';
-    document.getElementById('camBtn').textContent = '✕ Desligar';
+    const cb = document.getElementById('camBtn');
+    cb.textContent = '✕ Desligar'; cb.className = 'btn btn-off';
     document.getElementById('scanBtn').disabled = false;
     setStatus('Câmera ativa — clique em Escanear QR', 'info');
   } catch(e) { setStatus('Erro câmera: ' + e.message, 'error'); }
@@ -268,7 +269,8 @@ function stopCam() {
   camOn = false;
   video.style.display = 'none'; video.srcObject = null;
   document.getElementById('camIdle').style.display = 'flex';
-  document.getElementById('camBtn').textContent = '📷 Ligar';
+  const cb2 = document.getElementById('camBtn');
+  cb2.textContent = '📷 Ligar câmera'; cb2.className = 'btn btn-scan';
   document.getElementById('scanBtn').disabled = true;
   ['c1','c2','c3','c4'].forEach(id => document.getElementById(id).classList.remove('show'));
   document.getElementById('scanLine').classList.remove('show');
