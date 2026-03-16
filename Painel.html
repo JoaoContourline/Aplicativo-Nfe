@@ -25,9 +25,9 @@
   .input-label { font-size: 12px; color: var(--muted); font-weight: 500; }
   .input { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 11px 14px; color: var(--text); font-size: 15px; outline: none; transition: border-color 0.15s; width: 100%; }
   .input:focus { border-color: var(--green); }
-  select.input { cursor: pointer; }
   .login-btn { padding: 13px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; }
   .login-btn:hover { background: #15803d; }
+  .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
   .login-error { color: var(--red); font-size: 12px; text-align: center; display: none; }
 
   /* APP */
@@ -45,6 +45,8 @@
   .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
   .pill-dot.pulse { animation: pulse 1s ease-in-out 3; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  .logout-btn { font-size: 12px; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); cursor: pointer; }
+  .logout-btn:hover { color: var(--red); border-color: var(--red); }
 
   /* EMPTY */
   .empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--faint); text-align: center; padding: 40px; }
@@ -52,33 +54,22 @@
   .empty-title { font-size: 16px; font-weight: 600; color: var(--muted); }
   .empty-sub { font-size: 13px; line-height: 1.6; }
 
-  /* LISTA — ocupa o resto da tela e rola */
-  .list {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 16px 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+  /* LISTA */
+  .list { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 16px 24px; display: flex; flex-direction: column; gap: 10px; }
 
   /* CARD */
   .nota-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.04); flex-shrink: 0; }
   .nota-card.new { border-color: var(--green-dim); animation: slideIn 0.3s ease; box-shadow: 0 0 0 3px var(--green-bg); }
   @keyframes slideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
-
   .nota-header { padding: 10px 16px; background: var(--surface2); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .nota-num { font-size: 13px; font-weight: 700; color: var(--green-text); }
   .nota-hora { font-size: 12px; color: var(--muted); white-space: nowrap; }
   .new-badge { background: var(--green-bg); border: 1px solid var(--green-dim); border-radius: 4px; padding: 2px 8px; font-size: 10px; font-weight: 700; color: var(--green-text); }
-
   .nota-body { padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
   .chave-text { font-family: monospace; font-size: 13px; color: var(--text); word-break: break-all; flex: 1; line-height: 1.5; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; }
   .copy-btn { padding: 10px 18px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
   .copy-btn:hover { background: #15803d; }
   .copy-btn.copied { background: #15803d; opacity: 0.85; }
-
   .countdown-bar-wrap { height: 3px; background: var(--border); }
   .countdown-bar { height: 3px; background: var(--green); width: 100%; transition: width 10s linear; }
   .countdown-bar.running { width: 0%; }
@@ -99,18 +90,14 @@
       </div>
     </div>
     <div class="input-group">
-      <div class="input-label">Quem é você?</div>
-      <select class="input" id="nomeSelect">
-        <option value="">Selecione seu nome...</option>
-        <option value="João">João</option>
-        <option value="Susane">Susane</option>
-      </select>
+      <div class="input-label">Email</div>
+      <input class="input" id="emailInput" type="email" placeholder="seu@contourline.com" autocomplete="email">
     </div>
     <div class="input-group">
-      <div class="input-label">Senha de acesso</div>
-      <input class="input" id="senhaInput" type="password" placeholder="••••••">
+      <div class="input-label">Senha</div>
+      <input class="input" id="senhaInput" type="password" placeholder="••••••••">
     </div>
-    <button class="login-btn" onclick="fazerLogin()">Entrar</button>
+    <button class="login-btn" id="loginBtn" onclick="fazerLogin()">Entrar</button>
     <div class="login-error" id="loginError"></div>
   </div>
 </div>
@@ -130,6 +117,7 @@
         <div class="pill-dot" id="syncDot"></div>
         <span>ao vivo</span>
       </div>
+      <button class="logout-btn" onclick="fazerLogout()">Sair</button>
     </div>
   </div>
 
@@ -145,8 +133,10 @@
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { initializeApp }                     from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getDatabase, ref, onValue, remove } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+import { initializeApp }                          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, onValue, remove }      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+import { getAuth, signInWithEmailAndPassword,
+         onAuthStateChanged, signOut }             from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const firebaseConfig = {
   apiKey:            "AIzaSyCvDfXJLqcNHw98MzE5vh4FEgqyLCdlz0w",
@@ -158,40 +148,73 @@ const firebaseConfig = {
   appId:             "1:763216967875:web:f65811332fa041bab40a76"
 };
 
-const app = initializeApp(firebaseConfig);
-const db  = getDatabase(app);
-const SENHA = 'contourline2024';
+const USUARIOS = {
+  'joao@contourline.com':   'João',
+  'susane@contourline.com': 'Susane',
+};
+
+const app  = initializeApp(firebaseConfig);
+const db   = getDatabase(app);
+const auth = getAuth(app);
+
 let usuarioAtual = '';
 let notas = [];
 let primeiraVez = true;
+let unsubscribe = null;
 
-window.fazerLogin = function() {
-  const nome  = document.getElementById('nomeSelect').value;
-  const senha = document.getElementById('senhaInput').value;
-  const erro  = document.getElementById('loginError');
-  if (!nome)           { erro.style.display='block'; erro.textContent='Selecione seu nome'; return; }
-  if (senha !== SENHA) { erro.style.display='block'; erro.textContent='Senha incorreta'; return; }
-  localStorage.setItem('nfse_usuario', nome);
-  mostrarPainel(nome);
-};
+// ── AUTH STATE ─────────────────────────────────────────
+onAuthStateChanged(auth, (user) => {
+  if (user && USUARIOS[user.email]) {
+    mostrarPainel(user.email);
+  } else {
+    mostrarLogin();
+  }
+});
 
-function mostrarPainel(nome) {
-  usuarioAtual = nome;
+function mostrarLogin() {
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  notas = []; primeiraVez = true;
+}
+
+function mostrarPainel(email) {
+  usuarioAtual = USUARIOS[email];
   document.getElementById('loginOverlay').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  document.getElementById('headerSub').textContent = 'Olá, ' + nome + ' — tempo real';
+  document.getElementById('headerSub').textContent = 'Olá, ' + usuarioAtual + ' — tempo real';
   iniciarListener();
 }
 
-const salvo = localStorage.getItem('nfse_usuario');
-if (salvo) mostrarPainel(salvo);
+// ── LOGIN ──────────────────────────────────────────────
+window.fazerLogin = async function() {
+  const email = document.getElementById('emailInput').value.trim();
+  const senha = document.getElementById('senhaInput').value;
+  const erro  = document.getElementById('loginError');
+  const btn   = document.getElementById('loginBtn');
+  erro.style.display = 'none';
+  if (!email || !senha) { erro.style.display='block'; erro.textContent='Preencha email e senha'; return; }
+  btn.disabled = true; btn.textContent = 'Entrando...';
+  try {
+    await signInWithEmailAndPassword(auth, email, senha);
+  } catch(e) {
+    erro.style.display = 'block';
+    erro.textContent = 'Email ou senha incorretos';
+    btn.disabled = false; btn.textContent = 'Entrar';
+  }
+};
+
+window.fazerLogout = async function() {
+  await signOut(auth);
+};
 
 document.getElementById('senhaInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') window.fazerLogin();
 });
 
+// ── LISTENER FIREBASE ──────────────────────────────────
 function iniciarListener() {
-  onValue(ref(db, 'notas/' + usuarioAtual), (snapshot) => {
+  unsubscribe = onValue(ref(db, 'notas/' + usuarioAtual), (snapshot) => {
     const data = snapshot.val();
     const lista = [];
     if (data) {
@@ -211,10 +234,10 @@ function iniciarListener() {
   });
 }
 
+// ── RENDER ─────────────────────────────────────────────
 function renderNotas(temNova) {
   const list  = document.getElementById('noteList');
   const empty = document.getElementById('emptyState');
-
   document.getElementById('countPill').textContent =
     notas.length + (notas.length === 1 ? ' nota' : ' notas');
 
@@ -224,25 +247,24 @@ function renderNotas(temNova) {
     list.innerHTML = '';
     return;
   }
-
   empty.style.display = 'none';
   list.style.display  = 'flex';
 
-  // Remove cards que sumiram do Firebase
+  // Remove cards deletados
   Array.from(list.children).forEach(el => {
     const key = el.id.replace('card-', '');
     if (!notas.find(n => n.fbKey === key)) el.remove();
   });
 
-  // Adiciona cards novos no topo
+  // Adiciona novos no topo
   notas.forEach((n, i) => {
     if (!document.getElementById('card-' + n.fbKey)) {
-      const card = criarCard(n, i === 0); // primeiro sempre tem NOVA pois é o mais recente não copiado
+      const card = criarCard(n, temNova && i === 0);
       list.insertBefore(card, list.firstChild);
     }
   });
 
-  // Garante que só o primeiro card tem o badge NOVA
+  // Badge NOVA só no card do topo
   Array.from(list.children).forEach((el, i) => {
     const badge = el.querySelector('.new-badge');
     if (i === 0) {
@@ -250,7 +272,8 @@ function renderNotas(temNova) {
         const span = document.createElement('span');
         span.className = 'new-badge';
         span.textContent = 'NOVA';
-        el.querySelector('.nota-header > div:last-child').prepend(span);
+        const headerRight = el.querySelector('.nota-header > div:last-child');
+        if (headerRight) headerRight.prepend(span);
       }
     } else {
       if (badge) badge.remove();
@@ -263,11 +286,9 @@ function criarCard(n, isNova) {
   const hora = ts ? ts.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', second:'2-digit' }) : '—';
   const data = ts ? ts.toLocaleDateString('pt-BR') : '—';
   const k    = n.fbKey;
-
-  const div = document.createElement('div');
+  const div  = document.createElement('div');
   div.className = 'nota-card' + (isNova ? ' new' : '');
   div.id = 'card-' + k;
-
   div.innerHTML =
     '<div class="nota-header">' +
       '<span class="nota-num">📅 ' + data + '</span>' +
@@ -281,7 +302,6 @@ function criarCard(n, isNova) {
       '<button class="copy-btn" id="btn-' + k + '">📋 Copiar</button>' +
     '</div>' +
     '<div class="countdown-bar-wrap"><div class="countdown-bar" id="bar-' + k + '"></div></div>';
-
   div.querySelector('.copy-btn').addEventListener('click', () => copiar(k));
   return div;
 }
